@@ -1,0 +1,41 @@
+Save File As,Default
+File Name,default
+Test Time,1000
+Show Relative Dose,FALSE
+Calibration Factor,0.5
+Temperature Correction,0.0
+Reference diff Voltage,200.0
+Integrator Mode,TRUE
+Integration Time,160
+Reset Time,500
+Facility,Blue Physics
+Investigator,Marcos
+Source,Light
+Brand,Elekta
+Particles,Photons
+Energy,6
+Dose Rate,300
+Gantry,0
+Collimator,0
+Couch,0
+Field Size X1,5.0
+Field Size X2,5.0
+Field Size Y1,6.4
+Field Size Y2,5.0
+Ion Chamber,199.5
+Setup,SSD
+Distance,100
+MU,100
+PS0,54400
+PS1,54400
+Transducer Type,MPPC S13360-1325CS
+Sensor Type,Fiber
+Sensor Size,3
+Fiber Diameter,0.25
+Fiber Length,99
+Sensor Position X,0.0
+Sensor Position Y,0.0
+Sensor Position Z,0.0
+Reference Fiber Diameter,0.25
+Reference Fiber Length,99
+Comments,Test
