@@ -34,8 +34,8 @@ metadatakeylist = ['Save File As', 'File Name', 'Test Time',
                    'Particles', 'Energy', 'Dose Rate', 'Gantry',
                    'Collimator', 'Couch', 'Field Size X1',
                    'Field Size X2', 'Field Size Y1', 'Field Size Y2',
-                   'Ion Chamber', 'Setup', 'Distance', 'MU', 'PS0',
-                   'PS1', 'Transducer Type', 'Sensor Type',
+                   'Ion Chamber', 'Setup', 'Distance', 'MU', 'PS',
+                   'Transducer Type', 'Sensor Type',
                    'Sensor Size', 'Fiber Diameter', 'Fiber Length',
                    'Sensor Position X', 'Sensor Position Y',
                    'Sensor Position Z','Reference Fiber Diameter',
@@ -154,11 +154,11 @@ class MainMenu (QMainWindow):
         self.myanalyze.setWindowTitle('Blue Physics Model 8 Analyze File:')
        
     def signals(self):
-        self.tbvoltage.clicked.connect(self.showvoltage)
+        #self.tbvoltage.clicked.connect(self.showvoltage)
         self.tbmeasure.clicked.connect(self.showmeasure)
         self.tboff.clicked.connect(app.quit)
         self.tbsettings.clicked.connect(self.showmetadata)
-        self.tbanalyze.clicked.connect(self.showanalyze)
+        #self.tbanalyze.clicked.connect(self.showanalyze)
         
     def showanalyze(self):
         self.close()
@@ -829,22 +829,36 @@ class Measure(QMainWindow):
         df['ch0z'] = df.ch0 - df.loc[(df.time<ts)|(df.time>tf), 'ch0'].mean()
         df['ch1z'] = df.ch1 - df.loc[(df.time<ts)|(df.time>tf), 'ch1'].mean()
         
-        #calculate integrals
+        #calculate integrals not corrected
         intch0 = df.loc[(df.time>ts)&(df.time<tf), 'ch0z'].sum()
         intch1 = df.loc[(df.time>ts)&(df.time<tf), 'ch1z'].sum()
         
-        #draw the new plots with zeros
-        self.curvech0.setData(df.time, df.ch0z)
-        self.curvech1.setData(df.time, df.ch1z)
+        #Calculate ch0 corrected
+        df['ch0zc'] = df.ch0z * float(dmetadata['Calibration Factor'])
+        df['ch1zc'] = df.ch1z
+        
+        #Calculate integrals corrected
+        intch0c = df.loc[(df.time>ts)&(df.time<tf), 'ch0zc'].sum()
+        intch1c = df.loc[(df.time>ts)&(df.time<tf), 'ch1zc'].sum()
+        
+        #calculate absolute dose
+        absdose = intch1c - intch0c
+        
+        #calculate relative dose
+        reldose = (absdose / float(dmetadata['Reference diff Voltage'])) * 100
+        
+        #draw the new plots with zeros corrected
+        self.curvech0.setData(df.time, df.ch0zc)
+        self.curvech1.setData(df.time, df.ch1zc)
         
         
         #Put integrals in the graph
-        ch0text = pg.TextItem('Int %s: %.2f' %('ch0', intch0), color = '#C0392B')
+        ch0text = pg.TextItem('Int %s: %.2fV' %('ch0', intch0), color = '#C0392B')
         ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5)
         self.plotitemchs.addItem(ch0text)
         
-        ch1text = pg.TextItem('Int %s: %.2f' %('ch1', intch1), color = '#3498DB')
-        ch1text.setPos((tf+ts)/2 - 2, df.ch1z.max()+ 0.5)
+        ch1text = pg.TextItem('Int %s: %.2f, Abs. Dose: %.2f, Rel. Dose: %.2f' %('ch1', intch1, absdose, reldose), color = '#3498DB')
+        ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5)
         self.plotitemchs.addItem(ch1text)
         
         
