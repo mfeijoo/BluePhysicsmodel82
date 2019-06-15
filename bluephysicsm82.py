@@ -121,7 +121,7 @@ class MeasureThread(QThread):
                 reading = self.ser.readline().decode().strip().split(',')
                 #print (reading)
                 listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
-                print (listatosend)
+                #print (listatosend)
                 self.info.emit(listatosend)
             except:
                 pass
@@ -131,8 +131,8 @@ class MeasureThread(QThread):
     def stopping(self):
         self.stop = True
         self.ser.close()
-        #self.wait()
-        #self.quit()
+        self.wait()
+        self.quit()
                    
        
 class MainMenu (QMainWindow):
@@ -629,17 +629,12 @@ class Measure(QMainWindow):
         self.plotitemPS.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemPS.setLabel('bottom', 'Time', units ='s')
         self.plotitemPS.setLabel('left', 'Voltage', units = 'V')
-        self.plotitemvoltages = pg.PlotItem(title ='<span style="color: #990099">5V</span> '
-                                                    '& <span style="color: #009999">12V</span> '
-                                                    '& <span style="color: #990000">10.58V</span> '
-                                                    '& <span style="color: #009900">-12V</span> ')
+        self.plotitemvoltages = pg.PlotItem(title ='<span style="color: #990099">-12V</span> '
+                                                    '& <span style="color: #009999">5V</span> '
+                                                    '& <span style="color: #990000">10.58V</span>')
         self.plotitemvoltages.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemvoltages.setLabel('bottom', 'Time', units = 's')
         self.plotitemvoltages.setLabel('left', 'Voltage', units = 'V')
-        self.plotitem613 = pg.PlotItem(title ='<span style="color: #990099">61.3V</span>')
-        self.plotitem613.showGrid(x = True, y = True, alpha = 0.5)
-        self.plotitem613.setLabel('bottom', 'Time', units = 's')
-        self.plotitem613.setLabel('left', 'Voltages', units = 'V')
         self.plotitemtemp = pg.PlotItem(title = '<span style="color: #002525">Temp C')
         self.plotitemtemp.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemtemp.setLabel('bottom', 'Time', units = 's')
@@ -656,20 +651,16 @@ class Measure(QMainWindow):
         self.curvePS = self.plotitemPS.plot(pen=pg.mkPen(color='#000099', width=2),
                                                    autoDownsample = False)
 
-        self.curve613V = self.plotitem613.plot(pen=pg.mkPen(color='#990099', width=2),
-                                                   autoDownsample = False)
-        self.curve5V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#990099',
+        self.curve5V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#009999',
                                                                           width=2),
                                                    autoDownsample = False)
-        self.curveminus12V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#009900',
+        self.curveminus12V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#990099',
                                                                  width=2),
                                                   autoDownsample = False)
         self.curve1058V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#990000',
                                                                              width=2),
                                                    autoDownsample = False)
-        self.curve12V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#009999',
-                                                                           width=2),
-                                                   autoDownsample = False)
+
 
         self.curvetemp = self.plotitemtemp.plot(pen=pg.mkPen(color='#002525', width=2),
                                                    autoDownsample = False)
@@ -686,6 +677,7 @@ class Measure(QMainWindow):
         self.tbviewch0.clicked.connect(self.viewplots)
         self.tbviewch1.clicked.connect(self.viewplots)
         self.cbsecondplot.currentIndexChanged.connect(self.secondplot)
+        self.tbstopmeasure.clicked.connect(self.stopmeasurement)
 
         
     def secondplot(self, index):
@@ -699,8 +691,6 @@ class Measure(QMainWindow):
         elif index == 2:
             self.graphicsView.addItem(self.plotitemPS, row=1, col=0)
         elif index == 3:
-            self.graphicsView.addItem(self.plotitem613, row=1, col=0)
-        elif index == 4:
             self.graphicsView.addItem(self.plotitemvoltages, row=1, col=0)
     
     
@@ -731,13 +721,11 @@ class Measure(QMainWindow):
         self.tempmeas = []
         self.ch0meas = []
         self.ch1meas = []
-        self.v5Vmeas = []
-        self.v12Vmeas = []
-        self.v1058Vmeas = []
-        self.minus12Vmeas = []
         self.PSmeas = []
-        self.v613Vmeas = []    
-        
+        self.minus12Vmeas = []
+        self.v5Vmeas = []
+        self.v1058Vmeas = []
+
 
         self.tbstopmeasure.setEnabled(True)
         self.tbstartmeasure.setEnabled(False)
@@ -752,7 +740,7 @@ class Measure(QMainWindow):
         self.measurethread = MeasureThread()
         self.measurethread.start()
         self.measurethread.info.connect(self.update)
-        self.tbstopmeasure.clicked.connect(self.stopmeasurement)
+        
 
       
     def update(self, measurements):
@@ -760,23 +748,20 @@ class Measure(QMainWindow):
         self.tempmeas.append(measurements[1])
         self.ch0meas.append(measurements[2])
         self.ch1meas.append(measurements[3])
-        self.v5Vmeas.append(measurements[4])
-        self.v1058Vmeas.append(measurements[5])
-        self.v12Vmeas.append(measurements[6])
-        self.minus12Vmeas.append(measurements[7])
-        self.PSmeas.append(measurements[8])
-        self.v613Vmeas.append(measurements[9])
+        self.PSmeas.append(measurements[4])
+        self.minus12Vmeas.append(measurements[5])
+        self.v5Vmeas.append(measurements[6])
+        self.v1058Vmeas.append(measurements[7])   
         
-        
-        self.curvetemp.setData(self.times[::3], self.tempmeas[::3])
-        self.curvech0.setData(self.times[::3], self.ch0meas[::3])
-        self.curvech1.setData(self.times[::3], self.ch1meas[::3])
-        self.curve5V.setData(self.times[::3], self.v5Vmeas[::3])
-        self.curve12V.setData(self.times[::3], self.v12Vmeas[::3])
-        self.curve1058V.setData(self.times[::3], self.v1058Vmeas[::3])
-        self.curveminus12V.setData(self.times[::3], self.minus12Vmeas[::3])
-        self.curvePS.setData(self.times[::3], self.PSmeas[::3])
-        self.curve613V.setData(self.times[::3], self.v613Vmeas[::3])
+        DS = 5 #Downsampling
+        self.curvetemp.setData(self.times[::DS], self.tempmeas[::DS])
+        self.curvech0.setData(self.times[::DS], self.ch0meas[::DS])
+        self.curvech1.setData(self.times[::DS], self.ch1meas[::DS])
+        self.curve5V.setData(self.times[::DS], self.v5Vmeas[::DS])
+        self.curve1058V.setData(self.times[::DS], self.v1058Vmeas[::DS])
+        self.curveminus12V.setData(self.times[::DS], self.minus12Vmeas[::DS])
+        self.curvePS.setData(self.times[::DS], self.PSmeas[::DS])
+
         
         
         
@@ -793,41 +778,45 @@ class Measure(QMainWindow):
         
         #Save data in files and close files
         
-        self.filemeas = open ('./rawdata/%smeasurements.csv' %dmetadata['File Name'], 'w')
+        self.filemeas = open ('./rawdata/%s.csv' %dmetadata['File Name'], 'w')
 
         for key in metadatakeylist:
             self.filemeas.write('%s,%s\n' %(key,dmetadata[key]))
 
-        self.filemeas.write('time,temp,ch0,ch1,5V,12V,10.38V,-12V,PS,61.3V\n')
+        self.filemeas.write('time,temp,ch0,ch1,PS,-12V,5V,10.58V\n')
         
         for i in range(len(self.times)):
-            self.filemeas.write('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n' %(self.times[i],
+            self.filemeas.write('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n' %(self.times[i],
                                                                 self.tempmeas[i],
                                                                 self.ch0meas[i],
                                                                 self.ch1meas[i],
-                                                                self.v5Vmeas[i],
-                                                                self.v12Vmeas[i],
-                                                                self.v1058Vmeas[i],
-                                                                self.minus12Vmeas[i],
                                                                 self.PSmeas[i],
-                                                                self.v613Vmeas[i]))
+                                                                self.minus12Vmeas[i],
+                                                                self.v5Vmeas[i],
+                                                                self.v1058Vmeas[i]))
         self.filemeas.close()
         
         #Calculate integrals
         #first put in a dataframe
-        df = pd.DataFrame({'time': self.times, 'ch0': self.ch0meas, 'ch1':self.ch1meas,
-              '5V': self.v5Vmeas, '12V':self.v12Vmeas, '10.58V':self.v1058Vmeas,
-              '-12V':self.minus12Vmeas, 'PS':self.PSmeas, '61.3V':self.v613Vmeas})
+        df = pd.DataFrame({'time': self.times, 'temp':self.tempmeas,
+                           'ch0': self.ch0meas, 'ch1':self.ch1meas,
+                           '5V': self.v5Vmeas, '10.58V':self.v1058Vmeas,
+                           '-12V':self.minus12Vmeas, 'PS':self.PSmeas})
               
         #Calculate start and end of radiation
         #Assuming ch1 is where the sensor is and it has the largest differences
         df['ch1diff'] = df.ch1.diff()
         ts = df.loc[df.ch1diff == df.ch1diff.max(), 'time'].item()
         tf = df.loc[df.ch1diff == df.ch1diff.min(), 'time'].item()
+        print ('Start time: %.2f Finish time: %.2f' %(ts, tf))
+        
+        #calculate correction to temperature
+        df['ch0tc'] = df.ch0 - 0.06073665 * (df.temp - 26.5)
+        df['ch1tc'] = df.ch1 - 0.05862478 * (df.temp - 26.5)
         
         #calculate the zeros
-        df['ch0z'] = df.ch0 - df.loc[(df.time<ts)|(df.time>tf), 'ch0'].mean()
-        df['ch1z'] = df.ch1 - df.loc[(df.time<ts)|(df.time>tf), 'ch1'].mean()
+        df['ch0z'] = df.ch0tc - df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()
+        df['ch1z'] = df.ch1tc - df.loc[(df.time<ts)|(df.time>tf), 'ch1tc'].mean()
         
         #calculate integrals not corrected
         intch0 = df.loc[(df.time>ts)&(df.time<tf), 'ch0z'].sum()
@@ -847,9 +836,14 @@ class Measure(QMainWindow):
         #calculate relative dose
         reldose = (absdose / float(dmetadata['Reference diff Voltage'])) * 100
         
+        self.plotitemchs.clear()
         #draw the new plots with zeros corrected
         self.curvech0.setData(df.time, df.ch0zc)
         self.curvech1.setData(df.time, df.ch1zc)
+        self.legend.scene().removeItem(self.legend)
+        self.legend = self.plotitemchs.addLegend()
+        self.plotitemchs.addItem(self.curvech0)
+        self.plotitemchs.addItem(self.curvech1)
         
         
         #Put integrals in the graph

@@ -363,11 +363,6 @@ background-color:rgb(193,210,238);
             </item>
             <item>
              <property name="text">
-              <string>61.3</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
               <string>voltages</string>
              </property>
             </item>
