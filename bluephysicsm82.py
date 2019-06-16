@@ -144,18 +144,17 @@ class MainMenu (QMainWindow):
         self.setwindowstitle()
         
     def setwindowstitle(self):
-        windowstitle = 'Blue Physics Model 8 File: %s' %(dmetadata['File Name'])
+        windowstitle = 'Blue Physics Model 8.2 File: %s' %(dmetadata['File Name'])
         self.setWindowTitle(windowstitle)
         self.mymeasure.setWindowTitle(windowstitle)
         self.mymetadata.setWindowTitle(windowstitle)
-        self.myanalyze.setWindowTitle('Blue Physics Model 8 Analyze File:')
+        self.myanalyze.setWindowTitle('Blue Physics Model 8.2 Analyze File:')
        
     def signals(self):
-        #self.tbvoltage.clicked.connect(self.showvoltage)
         self.tbmeasure.clicked.connect(self.showmeasure)
         self.tboff.clicked.connect(app.quit)
         self.tbsettings.clicked.connect(self.showmetadata)
-        #self.tbanalyze.clicked.connect(self.showanalyze)
+        self.tbanalyze.clicked.connect(self.showanalyze)
         
     def showanalyze(self):
         self.close()
@@ -176,6 +175,7 @@ class MainMenu (QMainWindow):
     def showmeasure(self):
         self.close()
         self.mymeasure.show()
+        
 
 
 class Analyze (QMainWindow):
@@ -654,6 +654,36 @@ class Measure(QMainWindow):
         
     
     def startmeasuring(self):
+        #Check if the file already exist, to prevent overwritting
+        filesnow = os.listdir('rawdata')
+        if ('%s.csv' %dmetadata['File Name'] in filesnow) and (dmetadata['File Name'] != 'default'):
+            filename = dmetadata['File Name']
+            #check if file names ends with -num
+            if '-' in filename:
+                pos = filename.find('-')
+                current_num = int(filename[pos+1:])
+                new_num = current_num + 1
+                new_name = '%s-%s' %(filename[:pos], new_num)
+                
+            else:
+                new_name = '%s-2' %filename
+                
+            buttonreply = QMessageBox.question(self, 'File exists',
+                                  "Change to %s?" %new_name,
+                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                                  
+            if buttonreply == QMessageBox.Yes:
+                dmetadata['File Name'] = new_name
+                mymainmenu.setwindowstitle()
+                self.startmeasuringforgood()
+            else:
+                self.close()
+                mymainmenu.mymetadata.show()
+        else:
+            self.startmeasuringforgood()
+                   
+            
+    def startmeasuringforgood(self):
         #Refresh screen and reset buttons
         #clearLayout (self.gridmeasure)
         global measurements_done
@@ -699,7 +729,7 @@ class Measure(QMainWindow):
         self.v5Vmeas.append(measurements[6])
         self.v1058Vmeas.append(measurements[7])   
         
-        DS = 5 #Downsampling
+        DS = 2 #Downsampling
         self.curvetemp.setData(self.times[::DS], self.tempmeas[::DS])
         self.curvech0.setData(self.times[::DS], self.ch0meas[::DS])
         self.curvech1.setData(self.times[::DS], self.ch1meas[::DS])
@@ -761,6 +791,7 @@ class Measure(QMainWindow):
         df['ch1tc'] = df.ch1 - 0.05862478 * (df.temp - 26.5)
         
         #calculate the zeros
+        print ('mean zero ch0tc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()))
         df['ch0z'] = df.ch0tc - df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()
         df['ch1z'] = df.ch1tc - df.loc[(df.time<ts)|(df.time>tf), 'ch1tc'].mean()
         
@@ -790,6 +821,7 @@ class Measure(QMainWindow):
         self.legend = self.plotitemchs.addLegend()
         self.plotitemchs.addItem(self.curvech0)
         self.plotitemchs.addItem(self.curvech1)
+        print ('zero ch0zc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0zc'].mean()))
         
         
         #Put integrals in the graph
