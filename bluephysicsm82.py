@@ -25,11 +25,8 @@ colors = ['#C0392B', '#3498DB']
 
 
 #Read Metadata file and load data in a dictionary
-metadatakeylist = ['Save File As', 'File Name', 'Test Time',
-                   'Show Relative Dose',
-                   'Calibration Factor', 'Temperature Correction',
-                   'Reference diff Voltage',
-                   'Integrator Mode', 'Integration Time', 'Reset Time',
+metadatakeylist = ['Save File As', 'File Name',
+                   'Calibration Factor', 'Reference diff Voltage',
                    'Facility', 'Investigator', 'Source','Brand',
                    'Particles', 'Energy', 'Dose Rate', 'Gantry',
                    'Collimator', 'Couch', 'Field Size X1',
@@ -407,23 +404,8 @@ class Metadata (QMainWindow):
             #self.lefilename.setReadOnly(False)
             self.lefilename.setText(dmetadata['File Name'])
         
-        self.sbtesttime.setValue(int(dmetadata['Test Time']))
-
-        if dmetadata['Integrator Mode'] == 'TRUE':
-            self.tbintmode.setChecked(True)
-            self.tbpulsemode.setChecked(False)
-        else:
-            self.tbintmode.setChecked(False)
-            self.tbpulsemode.setChecked(True)
-        if dmetadata['Show Relative Dose'] == 'TRUE':
-            self.cbrelcalc.setChecked(True)
-        else:
-            self.cbrelcalc.setChecked(False)
         self.sbcalibfactor.setValue(float(dmetadata['Calibration Factor']))
-        self.sbtempcorrec.setValue(float(dmetadata['Temperature Correction']))
         self.sbreferencedose.setValue(float(dmetadata['Reference diff Voltage']))
-        self.sbinttime.setValue(int(dmetadata['Integration Time']))
-        self.sbresettime.setValue(int(dmetadata['Reset Time']))
         self.lefacility.setText(dmetadata['Facility'])
         self.leinvestigator.setText(dmetadata['Investigator'])
         self.cbsource.setCurrentText(dmetadata['Source'])
@@ -460,18 +442,10 @@ class Metadata (QMainWindow):
         self.tbsensor.clicked.connect(self.showsensorpage)
         self.tbcomments.clicked.connect(self.showcommentspage)
         self.tbmainmenumetadata.clicked.connect(self.backtomainmenu)
-        self.tbintmode.clicked.connect(self.integratorpulse)
-        self.tbpulsemode.clicked.connect(self.integratorpulse)
         self.cbdefault.clicked.connect(self.saveasfilename)
-        self.sbinttime.valueChanged.connect(self.tbintmodechange)
-        self.sbresettime.valueChanged.connect(self.tbintmodechange)
         self.cbdatetime.clicked.connect(self.saveasfilename)
         self.cbcustom.clicked.connect(self.saveasfilename)
-        self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)
-
-    def tbintmodechange(self, value):
-        self.tbintmode.setChecked(False)
-        self.tbpulsemode.setChecked(True)    
+        self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)    
 
 
     def saveoncurrent(self):
@@ -492,21 +466,6 @@ class Metadata (QMainWindow):
                 self.lefilename.setText('')
                 self.lefilename.setReadOnly(False)
         
-    def integratorpulse(self):
-        self.sermode = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
-        if self.tbintmode.isChecked():
-            inttime = self.sbinttime.value()
-            resettime = self.sbresettime.value()
-            stringtosend = 'i%s,%s' %(inttime, resettime)
-            bytestosend = stringtosend.encode('utf-8')
-            self.sermode.write(bytestosend)
-            print ('integrator mode set, integratortime: %s, resettime: %s' %(inttime, resettime))
-        else:
-            self.sermode.write('p'.encode('utf-8'))
-            print ('pulse mode')
-        
-        self.sermode.close()
-        
     def metadataguitodic(self):
         if self.cbdefault.isChecked():
             dmetadata['Save File As'] =  'Default'
@@ -515,21 +474,8 @@ class Metadata (QMainWindow):
         if self.cbcustom.isChecked():
             dmetadata['Save File As'] = 'Custom'
         dmetadata['File Name'] = self.lefilename.text()
-        dmetadata['Test Time'] = str(self.sbtesttime.value())
-        
-        if self.tbintmode.isChecked():
-            dmetadata['Integrator Mode'] = 'TRUE'
-        else:
-            dmetadata['Integrator Mode'] = 'FALSE'
-        if self.cbrelcalc.isChecked():
-            dmetadata['Show Relative Dose'] = 'TRUE'
-        else:
-            dmetadata['Show Relative Dose'] = 'FALSE'
         dmetadata['Calibration Factor'] = str(self.sbcalibfactor.value())
-        dmetadata['Temperature Correction'] = str(self.sbtempcorrec.value())
         dmetadata['Reference diff Voltage'] = str(self.sbreferencedose.value())
-        dmetadata['Integration Time'] = str(self.sbinttime.value())
-        dmetadata['Reset Time'] = str(self.sbresettime.value())
         dmetadata['Facility'] = self.lefacility.text()
         dmetadata['Investigator'] = self.leinvestigator.text()
         dmetadata['Source'] = self.cbsource.currentText()

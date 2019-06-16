@@ -312,55 +312,6 @@ background-color:rgb(193,210,238);
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QToolButton" name="tbvoltage">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>102</width>
-           <height>102</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>102</width>
-           <height>102</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="toolTip">
-          <string>Voltage</string>
-         </property>
-         <property name="toolTipDuration">
-          <number>-1</number>
-         </property>
-         <property name="text">
-          <string>Voltage</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>iconspd/battery.png</normaloff>iconspd/battery.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>75</width>
-           <height>75</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextUnderIcon</enum>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -395,52 +346,6 @@ background-color:rgb(193,210,238);
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QToolButton" name="tbexport">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>102</width>
-           <height>102</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>102</width>
-           <height>102</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="toolTip">
-          <string>Export</string>
-         </property>
-         <property name="text">
-          <string>Export</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>iconspd/export.png</normaloff>iconspd/export.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>75</width>
-           <height>75</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextUnderIcon</enum>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QToolButton" name="tbsettings">
          <property name="sizePolicy">
