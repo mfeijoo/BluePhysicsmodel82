@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>AnalyzeMainWindow</class>
  <widget class="QMainWindow" name="AnalyzeMainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -96,6 +99,9 @@ background-color:rgb(193,210,238);
        </item>
        <item>
         <widget class="QToolButton" name="tbreffile">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -213,7 +219,7 @@ background-color:rgb(193,210,238);
           <string>Plot1</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
+          <item row="0" column="0" colspan="2">
            <widget class="QToolButton" name="tbviewch0">
             <property name="enabled">
              <bool>false</bool>
@@ -257,7 +263,7 @@ background-color:rgb(193,210,238);
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="2">
            <widget class="QToolButton" name="tbviewch1">
             <property name="enabled">
              <bool>false</bool>
@@ -301,7 +307,7 @@ background-color:rgb(193,210,238);
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="0" colspan="2">
            <widget class="QToolButton" name="tbviewraw">
             <property name="enabled">
              <bool>false</bool>
@@ -346,13 +352,10 @@ background-color:rgb(193,210,238);
             <property name="toolButtonStyle">
              <enum>Qt::ToolButtonTextOnly</enum>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QToolButton" name="tbviewint">
+          <item row="1" column="2">
+           <widget class="QToolButton" name="tbviewtc">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -369,10 +372,10 @@ background-color:rgb(193,210,238);
              </size>
             </property>
             <property name="toolTip">
-             <string>View int data</string>
+             <string>Temp. Corrected</string>
             </property>
             <property name="text">
-             <string>int</string>
+             <string>tc</string>
             </property>
             <property name="icon">
              <iconset>
@@ -396,9 +399,100 @@ background-color:rgb(193,210,238);
             <property name="toolButtonStyle">
              <enum>Qt::ToolButtonTextOnly</enum>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QToolButton" name="tbviewztc">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Zeroed temp corrected</string>
+            </property>
+            <property name="text">
+             <string>ztc</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>iconspd/measure.png</normaloff>iconspd/measure.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>75</width>
+              <height>75</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextOnly</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QToolButton" name="tbviewztcC">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Zeroed temp corre &amp; calibrated</string>
+            </property>
+            <property name="text">
+             <string>ztcC</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>iconspd/measure.png</normaloff>iconspd/measure.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>75</width>
+              <height>75</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextOnly</enum>
+            </property>
            </widget>
           </item>
          </layout>
@@ -444,17 +538,12 @@ background-color:rgb(193,210,238);
             </item>
             <item>
              <property name="text">
-              <string>PS0PS1</string>
+              <string>PS</string>
              </property>
             </item>
             <item>
              <property name="text">
               <string>voltages</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>08V</string>
              </property>
             </item>
            </widget>
@@ -483,7 +572,4 @@ background-color:rgb(193,210,238);
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

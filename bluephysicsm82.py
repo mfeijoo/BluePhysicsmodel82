@@ -195,17 +195,19 @@ class Analyze (QMainWindow):
         self.figure.set_tight_layout(True)
         self.ax2.set_xlabel('time (s)')
         self.horizontalLayout.insertWidget(0, self.canvas)
-        self.plot1buttons = [self.tbviewch0, self.tbviewch1]
         self.signals()
         self.relfileloaded = False
+        self.plot1buttons = [self.tbviewch0, self.tbviewch1]
         
     def signals(self):
         self.tbmainmenuanalyze.clicked.connect(self.backtomainmenu)
         self.tbreffile.clicked.connect(self.selectfile)
-        for butt in self.plot1buttons:
-            butt.clicked.connect(self.plot1)
+        self.tbviewch0.clicked.connect(self.plot1)
+        self.tbviewch1.clicked.connect(self.plot1)
         self.tbviewraw.clicked.connect(self.plot1)
-        self.tbviewint.clicked.connect(self.plot1)
+        self.tbviewtc.clicked.connect(self.plot1)
+        self.tbviewztc.clicked.connect(self.plot1)
+        self.tbviewztcC.clicked.connect(self.plot1)
         self.cbsecondplot.currentIndexChanged.connect(self.plot2)
         self.tbrelfile.clicked.connect(self.relfile)
 
@@ -214,34 +216,50 @@ class Analyze (QMainWindow):
             #a funciton to load a second relative file to compare
             #with reference file loaded as self.df
             relfilename = QFileDialog.getOpenFileName(self, 'Open file',
-                                                      './rawdata',
-                                             'measurements (*measurements.csv)')
-            self.dfrel = pd.read_csv(relfilename[0], skiprows=41)
-            self.dfrel.columns = ['%srel' %c for c in self.dfrel.columns]
-            #loading powers of sencond file
-            self.dfrelp = pd.read_csv('%spowers.csv' %relfilename[0][:-16],
-                                        skiprows=41)
-            self.dfrelp.columns = ['%srel' %c for c in self.dfrelp.columns]
-            #print (self.dfrelp.head())
+                                                      './rawdata')
+            self.dfrel = pd.read_csv(relfilename[0], skiprows=34)
+            
             #flag to inidcate we have a relative file loaded
             self.relfileloaded = True
-                
-            #list of channels in the relative file, removing time
-            self.lchsrel = self.dfrel.columns[1:]
-                
-            #A routine to calculate the zeros
-            for ch in self.lchsrel:
-                self.dfrel['%sz' %ch] = self.dfrel[ch]-self.dfrel.loc[:25, ch].mean()
 
             #A routine to calculate the relative time with the reference
             #measurement under self.df
-            self.dfrel['ch1reldiff'] = self.dfrel.ch1rel.diff()
-            self.df['ch1diff'] = self.df.ch1.diff()
-            t2 = list(self.dfrel.loc[self.dfrel.ch1reldiff <-2, 'timerel'])[0]
-            t1 = list(self.df.loc[self.df.ch1diff<-2, 'time'])[0]
-            timediff = t2 - t1
-            self.dfrel['newtimerel'] = self.dfrel.timerel - timediff
-            self.dfrelp['newtimerel'] = self.dfrelp.timerel - timediff
+            self.dfrel['ch1reldiff'] = self.dfrel.ch1.diff()
+            self.trs = self.dfrel.loc[self.dfrel.ch1reldiff == self.dfrel.ch1reldiff.max(), 'time'].item()
+            timediff = self.trs - self.ts
+            self.dfrel['newtimerel'] = self.dfrel.time - timediff
+            
+            #Calculate start and end of radiation
+            #Assuming ch1 is where the sensor is and it has the largest differences
+            self.dfrel['ch1diff'] = self.dfrel.ch1.diff()
+            self.trf = self.dfrel.loc[self.dfrel.ch1diff == self.dfrel.ch1reldiff.min(), 'time'].item()
+             
+            #calculate correction to temperature
+            self.dfrel['ch0tc'] = self.dfrel.ch0 - 0.06073665 * (self.dfrel.temp - 26.5)
+            self.dfrel['ch1tc'] = self.dfrel.ch1 - 0.05862478 * (self.dfrel.temp - 26.5)
+                
+            #calculate the zeros
+            #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
+            self.dfrel['ch0z'] = self.dfrel.ch0tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch0tc'].mean()
+            self.dfrel['ch1z'] = self.dfrel.ch1tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch1tc'].mean()
+                
+            #calculate integrals not corrected
+            self.relintch0 = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0z'].sum()
+            self.relintch1 = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1z'].sum()
+                
+            #Calculate ch0 corrected
+            self.dfrel['ch0zc'] = self.dfrel.ch0z * float(dmetadata['Calibration Factor'])
+            self.dfrel['ch1zc'] = self.dfrel.ch1z
+             
+            #Calculate integrals corrected
+            self.relintch0c = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0zc'].sum()
+            self.relintch1c = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1zc'].sum()
+             
+            #calculate absolute dose
+            self.relabsdose = self.relintch1c - self.relintch0c
+                
+            #calculate relative dose
+            self.reldose = (self.relabsdose / float(dmetadata['Reference diff Voltage'])) * 100
 
             #plot the relative file
             self.plot1()
@@ -256,78 +274,146 @@ class Analyze (QMainWindow):
         #self.ax1.clear()
         #self.ax2.clear()
         filename = QFileDialog.getOpenFileName(self, 'Open file',
-                                               './rawdata',
-                                    'measurements (*measurements.csv)')
+                                               './rawdata')
         filename_only = filename[0].split('/')[-1]
-        filenamepowers = '%spowers.csv' %filename[0][:-16]
-        self.setWindowTitle('Blue Physics Model 8 Analyze File: %s'
+        self.setWindowTitle('Blue Physics Model 8.2 Analyze File: %s'
                              %filename_only)
-        self.dfp = pd.read_csv(filenamepowers, skiprows=41)
-        #print (self.dfp.head())
-        self.df = pd.read_csv(filename[0], skiprows=41)
-        #list of channels in the file, removing time
-        self.lchs = self.df.columns[1:]
+        self.dfa = pd.read_csv(filename[0], skiprows=34)
         
-        #A routine to calculate the zeros
-        for ch in self.lchs:
-            self.df['%sz' %ch] = self.df[ch]-self.df.loc[:25, ch].mean()
-
+        #Calculate start and end of radiation
+        #Assuming ch1 is where the sensor is and it has the largest differences
+        self.dfa['ch1diff'] = self.dfa.ch1.diff()
+        self.ts = self.dfa.loc[self.dfa.ch1diff == self.dfa.ch1diff.max(), 'time'].item()
+        self.tf = self.dfa.loc[self.dfa.ch1diff == self.dfa.ch1diff.min(), 'time'].item()
+        print ('Start time: %.2f Finish time: %.2f' %(self.ts, self.tf))
+        
+        #calculate correction to temperature
+        self.dfa['ch0tc'] = self.dfa.ch0 - 0.06073665 * (self.dfa.temp - 26.5)
+        self.dfa['ch1tc'] = self.dfa.ch1 - 0.05862478 * (self.dfa.temp - 26.5)
+        
+        #calculate the zeros
+        #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
+        self.dfa['ch0z'] = self.dfa.ch0tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch0tc'].mean()
+        self.dfa['ch1z'] = self.dfa.ch1tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch1tc'].mean()
+        
+        #calculate integrals not corrected
+        self.intch0 = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0z'].sum()
+        self.intch1 = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1z'].sum()
+        
+        #Calculate ch0 corrected
+        self.dfa['ch0zc'] = self.dfa.ch0z * float(dmetadata['Calibration Factor'])
+        self.dfa['ch1zc'] = self.dfa.ch1z
+        
+        #Calculate integrals corrected
+        self.intch0c = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0zc'].sum()
+        self.intch1c = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1zc'].sum()
+        
+        #calculate absolute dose
+        self.absdose = self.intch1c - self.intch0c
+        
+        #calculate relative dose
+        self.reldose = (self.absdose / float(dmetadata['Reference diff Voltage'])) * 100
+        
         #Plot the selected file running the current functions
         self.plot1()
 
-        for but in self.plot1buttons:
-            but.setEnabled(True)
+        self.tbviewch0.setEnabled(True)
+        self.tbviewch1.setEnabled(True)
         self.cbsecondplot.setEnabled(True)
         self.tbviewraw.setEnabled(True)
-        self.tbviewint.setEnabled(True)
+        self.tbviewtc.setEnabled(True)
+        self.tbviewztc.setEnabled(True)
+        self.tbviewztcC.setEnabled(True)
 
 
     def plot1(self):
 
         self.ax1.clear()
         self.ax1.grid(True)
-        
-        for ch in self.plot1buttons:
-            if ch.isChecked():
-                if self.tbviewraw.isChecked():
-                    self.ax1.plot(self.df.time, self.df[ch.text()],
-                                  color=dcolors[ch.text()],
-                                  label=ch.text())
-                    if self.relfileloaded:
-                        self.ax1.plot(self.dfrel.newtimerel, self.dfrel['%srel' %ch.text()],
-                                       color = 'r',
-                                       alpha = 0.5,
-                                       label = '%srel' %ch.text())
-                else:
-                    self.ax1.plot(self.df.time, self.df['%sz' %ch.text()],
-                                  color=dcolors[ch.text()],
-                                  label=ch.text())
-                    #find x coord for text
-                    xcoord = self.df.time.max()/2
-                    #find y coord for text
-                    ycoord = self.df['%sz' %ch.text()].max()
-                    #calculate the integral
-                    integral = self.df['%sz' %ch.text()].sum()
-                    #Put integral in a text
-                    self.ax1.text(xcoord, ycoord, 'int: %s %.3f' 
-                                                %(ch.text(), integral),
-                                  color=dcolors[ch.text()])
 
-                    if self.relfileloaded:
-                        self.ax1.plot(self.dfrel.newtimerel, self.dfrel['%srelz' %ch.text()],
-                                      color = dcolors[ch.text()],
-                                      alpha = 0.5,
-                                      label = '%srel' %ch.text())
-                        xcoordrel = self.dfrel.newtimerel.max()/2
-                        ycoordrel = self.dfrel['%srelz' %ch.text()].max()
-                        integralrel = self.dfrel['%srelz' %ch.text()].sum()
-                        self.ax1.text(xcoordrel, ycoordrel,
-                                'int: %s %.3f' %(ch.text(), integralrel),
-                                color = dcolors[ch.text()],
-                                alpha = 0.5)
-                                        
-                        
-
+        if self.tbviewch0.isChecked():
+            if self.tbviewraw.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch0,
+                              color = colors[0], label = 'ch0')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0,
+                                  color = colors[0], alpha=0.5, label = 'ch0rel')
+            elif self.tbviewtc.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch0tc,
+                              color = colors[0], label = 'ch0')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0tc,
+                                  color = colors[0], alpha=0.5, label = 'ch0rel')
+            elif self.tbviewztc.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch0z,
+                              color = colors[0], label = 'ch0')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0z,
+                                  color = colors[0], alpha=0.5, label = 'ch0rel')
+                
+                #find x coord for text
+                xcoord = self.dfa.time.max()/2
+                #find y coord for text
+                ycoord = self.dfa.ch0z.max()
+                #Put integral in a text
+                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch0,
+                              color=colors[0])
+            else:
+                self.ax1.plot(self.dfa.time, self.dfa.ch0zc,
+                              color = colors[0], label = 'ch0')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0zc,
+                                  color = colors[0], alpha=0.5, label = 'ch0rel')
+                #find x coord for text
+                xcoord = self.dfa.time.max()/2
+                #find y coord for text
+                ycoord = self.dfa.ch0zc.max()
+                #Put integral in a text
+                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch0c,
+                              color=colors[0])
+                
+        if self.tbviewch1.isChecked():
+            if self.tbviewraw.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch1,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1,
+                                  color = colors[1], alpha=0.5, label = 'ch1rel')
+            elif self.tbviewtc.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch1tc,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1tc,
+                                  color = colors[1], alpha=0.5, label = 'ch1rel')
+            elif self.tbviewztc.isChecked():
+                self.ax1.plot(self.dfa.time, self.dfa.ch1z,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1tc,
+                                  color = colors[1], alpha=0.5, label = 'ch1rel')
+                #find x coord for text
+                xcoord = self.dfa.time.max()/2
+                #find y coord for text
+                ycoord = self.dfa.ch1z.max()
+                #Put integral in a text
+                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch1,
+                              color=colors[1])
+            else:
+                self.ax1.plot(self.dfa.time, self.dfa.ch1zc,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1zc,
+                                  color = colors[1], alpha=0.5, label = 'ch1rel')
+                #find x coord for text
+                xcoord = self.dfa.time.max()/2
+                #find y coord for text
+                ycoord = self.dfa.ch1zc.max()
+                #Put integral in a text
+                self.ax1.text(xcoord, ycoord, 'int: %.2f abs. dose: %.2f rel. dose: %.2f' %(self.intch1c,
+                                                                                           self.absdose,
+                                                                                           self.reldose),
+                              color=colors[1])
+       
         self.ax1.set_ylabel('volts (V)')
         self.ax1.legend()
         self.canvas.draw()
@@ -340,31 +426,33 @@ class Analyze (QMainWindow):
         self.ax2.set_ylabel('Volts (V)')
         
         if index == 1:
-            self.dfp.set_index('time').loc[:,'temp'].plot(ax=self.ax2,
-                                                        grid=True)
-            if self.relfileloaded:
-                self.dfrelp.set_index('newtimerel').loc[:, 'temprel'].plot(ax=self.ax2,
-                                                                    grid=True,
-                                                                    alpha=0.5)
+            self.dfa.set_index('time').loc[:,'temp'].plot(ax=self.ax2,
+                                                          color='#002525',
+                                                          grid=True)
+
             self.ax2.set_ylabel('Temp (C)')
+            if self.relfileloaded:
+                self.dfrel.set_index('newtimerel').loc[:,'temp'].plot(ax=self.ax2,
+                                                                      color = '#002525',
+                                                                      alpha=0.5,
+                                                                      grid=True)
         elif index == 2:
-            self.dfp.set_index('time').loc[:,['PS0', 'PS1']].plot(ax=self.ax2, grid=True)
+            self.dfa.set_index('time').loc[:,'PS'].plot(ax=self.ax2,
+                                                        grid=True,
+                                                        color='#000099')
             if self.relfileloaded:
-                self.dfrelp.set_index('newtimerel').loc[:, ['PS0rel', 'PS1rel']].plot(ax=self.ax2,
-                                                                        grid = True,
-                                                                        alpha=0.5)
+                self.dfrel.set_index('newtimerel').loc[:,'PS'].plot(ax=self.ax2,
+                                                                    color = '#002525',
+                                                                    alpha=0.5,
+                                                                    grid=True)
+
         elif index == 3:
-            self.dfp.set_index('time').loc[:,'61V':'12V'].plot(ax=self.ax2, grid=True)
+            self.dfa.set_index('time').loc[:,'-12V':'10.58V'].plot(ax=self.ax2, grid=True)
             if self.relfileloaded:
-                self.dfrelp.set_index('newtimerel').loc[:, '61Vrel':'12Vrel'].plot(ax=self.ax2,
-                                                                        grid=True,
-                                                                        alpha = 0.5)
-        elif index == 4:
-            self.dfp.set_index('time').loc[:,'08V'].plot(ax=self.ax2, grid=True)
-            if self.relfileloaded:
-                self.dfrelp.set_index('newtimerel').loc[:,'08Vrel'].plot(ax=self.ax2,
-                                                                grid=True,
-                                                                alpha = 0.5)
+                self.dfrel.set_index('newtimerel').loc[:,'-12V':'10.58V'].plot(ax=self.ax2,
+                                                                               alpha=0.5,
+                                                                               grid=True)
+
        
 
         self.ax2.set_xlabel('time (s)')
