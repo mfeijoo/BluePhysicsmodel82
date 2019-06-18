@@ -223,8 +223,8 @@ background-color:rgb(193,210,238);
          <property name="title">
           <string>Plot1</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
            <widget class="QToolButton" name="tbviewch0">
             <property name="enabled">
              <bool>true</bool>
@@ -268,7 +268,7 @@ background-color:rgb(193,210,238);
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item>
            <widget class="QToolButton" name="tbviewch1">
             <property name="enabled">
              <bool>true</bool>
@@ -306,6 +306,50 @@ background-color:rgb(193,210,238);
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextOnly</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="tbtempcorrec">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>View Ch0</string>
+            </property>
+            <property name="text">
+             <string>Temp. C.</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>iconspd/measure.png</normaloff>iconspd/measure.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>75</width>
+              <height>75</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
             <property name="toolButtonStyle">
              <enum>Qt::ToolButtonTextOnly</enum>

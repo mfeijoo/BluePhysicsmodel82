@@ -199,15 +199,16 @@ class Analyze (QMainWindow):
         self.relfileloaded = False
         self.plot1buttons = [self.tbviewch0, self.tbviewch1]
         
+        
     def signals(self):
         self.tbmainmenuanalyze.clicked.connect(self.backtomainmenu)
         self.tbreffile.clicked.connect(self.selectfile)
         self.tbviewch0.clicked.connect(self.plot1)
         self.tbviewch1.clicked.connect(self.plot1)
         self.tbviewraw.clicked.connect(self.plot1)
-        self.tbviewtc.clicked.connect(self.plot1)
-        self.tbviewztc.clicked.connect(self.plot1)
-        self.tbviewztcC.clicked.connect(self.plot1)
+        self.tbintegral.clicked.connect(self.plot1)
+        self.tbtempcorrec.clicked.connect(self.plot1)
+        self.tbcalibration.clicked.connect(self.plot1)
         self.cbsecondplot.currentIndexChanged.connect(self.plot2)
         self.tbrelfile.clicked.connect(self.relfile)
 
@@ -231,35 +232,58 @@ class Analyze (QMainWindow):
             
             #Calculate start and end of radiation
             #Assuming ch1 is where the sensor is and it has the largest differences
-            self.dfrel['ch1diff'] = self.dfrel.ch1.diff()
-            self.trf = self.dfrel.loc[self.dfrel.ch1diff == self.dfrel.ch1reldiff.min(), 'time'].item()
+            self.trf = self.dfrel.loc[self.dfrel.ch1reldiff == self.dfrel.ch1reldiff.min(), 'time'].item()
              
             #calculate correction to temperature
-            self.dfrel['ch0tc'] = self.dfrel.ch0 - 0.06073665 * (self.dfrel.temp - 26.5)
-            self.dfrel['ch1tc'] = self.dfrel.ch1 - 0.05862478 * (self.dfrel.temp - 26.5)
+            self.dfrel['ch0tc'] = self.dfrel.ch0
+            self.dfrel['ch1tc'] = self.dfrel.ch1
+            self.dfrel.loc[self.dfrel.ch0<6.26, 'ch0tc'] = self.dfrel.ch0 - (-0.012 * self.dfrel.ch0 + 0.075) * (self.dfrel.temp - 26.5)
+            self.dfrel.loc[self.dfrel.ch1<6.26, 'ch1tc'] = self.dfrel.ch1 - (-0.012 * self.dfrel.ch1 + 0.075) * (self.dfrel.temp - 26.5)
                 
             #calculate the zeros
             #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
-            self.dfrel['ch0z'] = self.dfrel.ch0tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch0tc'].mean()
-            self.dfrel['ch1z'] = self.dfrel.ch1tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch1tc'].mean()
+            self.dfrel['ch0ztc'] = self.dfrel.ch0tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch0tc'].mean()
+            self.dfrel['ch1ztc'] = self.dfrel.ch1tc - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch1tc'].mean()
+            
+            self.dfrel['ch0z'] = self.dfrel.ch0 - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch0'].mean()
+            self.dfrel['ch1z'] = self.dfrel.ch1 - self.dfrel.loc[(self.dfrel.time<self.trs)|(self.dfrel.time>self.trf), 'ch1'].mean()
                 
             #calculate integrals not corrected
+            self.relintch0tc = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0ztc'].sum()
+            self.relintch1tc = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1ztc'].sum()
+            
+            self.absdosenocalibtcrel = self.relintch1tc - self.relintch0tc
+            self.reldosenocalibtcrel = (self.absdosenocalibtcrel / float(dmetadata['Reference diff Voltage'])) * 100 
+            
             self.relintch0 = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0z'].sum()
             self.relintch1 = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1z'].sum()
+            
+            self.absdosenocalibrel = self.relintch1 - self.relintch0
+            self.reldosenocalibrel = (self.absdosenocalibrel / float(dmetadata['Reference diff Voltage'])) * 100
                 
             #Calculate ch0 corrected
             self.dfrel['ch0zc'] = self.dfrel.ch0z * float(dmetadata['Calibration Factor'])
             self.dfrel['ch1zc'] = self.dfrel.ch1z
+            
+            self.dfrel['ch0zctc'] = self.dfrel.ch0ztc * float(dmetadata['Calibration Factor'])
+            self.dfrel['ch1zctc'] = self.dfrel.ch1ztc
              
             #Calculate integrals corrected
             self.relintch0c = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0zc'].sum()
             self.relintch1c = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1zc'].sum()
+            
+            self.relintch0ctc = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch0zctc'].sum()
+            self.relintch1ctc = self.dfrel.loc[(self.dfrel.time>self.trs)&(self.dfrel.time<self.trf), 'ch1zctc'].sum()
              
             #calculate absolute dose
-            self.relabsdose = self.relintch1c - self.relintch0c
+            self.relrelabsdose = self.relintch1c - self.relintch0c
+            
+            self.relrelabsdosetc = self.relintch1ctc - self.relintch0ctc
                 
             #calculate relative dose
-            self.reldose = (self.relabsdose / float(dmetadata['Reference diff Voltage'])) * 100
+            self.relreldose = (self.relrelabsdose / float(dmetadata['Reference diff Voltage'])) * 100
+            
+            self.relreldosetc = (self.relrelabsdosetc / float(dmetadata['Reference diff Voltage'])) * 100
 
             #plot the relative file
             self.plot1()
@@ -288,30 +312,54 @@ class Analyze (QMainWindow):
         print ('Start time: %.2f Finish time: %.2f' %(self.ts, self.tf))
         
         #calculate correction to temperature
-        self.dfa['ch0tc'] = self.dfa.ch0 - 0.06073665 * (self.dfa.temp - 26.5)
-        self.dfa['ch1tc'] = self.dfa.ch1 - 0.05862478 * (self.dfa.temp - 26.5)
+        self.dfa['ch0tc'] = self.dfa.ch0
+        self.dfa['ch1tc'] = self.dfa.ch1
+        self.dfa.loc[self.dfa.ch0<6.25, 'ch0tc'] = self.dfa.ch0 - (-0.012 * self.dfa.ch0 + 0.075) * (self.dfa.temp - 26.5)
+        self.dfa.loc[self.dfa.ch1<6.25, 'ch1tc'] = self.dfa.ch1 - (-0.012 * self.dfa.ch1 + 0.075) * (self.dfa.temp - 26.5)
         
         #calculate the zeros
         #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
-        self.dfa['ch0z'] = self.dfa.ch0tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch0tc'].mean()
-        self.dfa['ch1z'] = self.dfa.ch1tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch1tc'].mean()
+        self.dfa['ch0ztc'] = self.dfa.ch0tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch0tc'].mean()
+        self.dfa['ch1ztc'] = self.dfa.ch1tc - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch1tc'].mean()
+        
+        self.dfa['ch0z'] = self.dfa.ch0 - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch0'].mean()
+        self.dfa['ch1z'] = self.dfa.ch1 - self.dfa.loc[(self.dfa.time<self.ts)|(self.dfa.time>self.tf), 'ch1'].mean()
         
         #calculate integrals not corrected
+        self.intch0tc = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0ztc'].sum()
+        self.intch1tc = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1ztc'].sum()
+        
+        self.absdosenocalibtc = self.intch1tc - self.intch0tc
+        self.reldosenocalibtc = (self.absdosenocalibtc / float(dmetadata['Reference diff Voltage'])) * 100 
+        
         self.intch0 = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0z'].sum()
         self.intch1 = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1z'].sum()
         
+        self.absdosenocalib = self.intch1 - self.intch0
+        self.reldosenocalib = (self.absdosenocalib / float(dmetadata['Reference diff Voltage'])) * 100
+        
         #Calculate ch0 corrected
+        self.dfa['ch0zctc'] = self.dfa.ch0ztc * float(dmetadata['Calibration Factor'])
+        self.dfa['ch1zctc'] = self.dfa.ch1ztc
+        
         self.dfa['ch0zc'] = self.dfa.ch0z * float(dmetadata['Calibration Factor'])
         self.dfa['ch1zc'] = self.dfa.ch1z
         
         #Calculate integrals corrected
+        self.intch0ctc = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0zctc'].sum()
+        self.intch1ctc = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1zctc'].sum()
+        
         self.intch0c = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch0zc'].sum()
         self.intch1c = self.dfa.loc[(self.dfa.time>self.ts)&(self.dfa.time<self.tf), 'ch1zc'].sum()
         
         #calculate absolute dose
+        self.absdosetc = self.intch1ctc - self.intch0ctc
+        
         self.absdose = self.intch1c - self.intch0c
         
         #calculate relative dose
+        self.reldosetc = (self.absdosetc / float(dmetadata['Reference diff Voltage'])) * 100
+        
         self.reldose = (self.absdose / float(dmetadata['Reference diff Voltage'])) * 100
         
         #Plot the selected file running the current functions
@@ -321,9 +369,9 @@ class Analyze (QMainWindow):
         self.tbviewch1.setEnabled(True)
         self.cbsecondplot.setEnabled(True)
         self.tbviewraw.setEnabled(True)
-        self.tbviewtc.setEnabled(True)
-        self.tbviewztc.setEnabled(True)
-        self.tbviewztcC.setEnabled(True)
+        self.tbintegral.setEnabled(True)
+        self.tbtempcorrec.setEnabled(True)
+        self.tbcalibration.setEnabled(True)
 
 
     def plot1(self):
@@ -332,87 +380,108 @@ class Analyze (QMainWindow):
         self.ax1.grid(True)
 
         if self.tbviewch0.isChecked():
-            if self.tbviewraw.isChecked():
+            if (self.tbviewraw.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0,
-                                  color = colors[0], alpha=0.5, label = 'ch0rel')
-            elif self.tbviewtc.isChecked():
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+            elif (self.tbviewraw.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0tc,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0tc,
-                                  color = colors[0], alpha=0.5, label = 'ch0rel')
-            elif self.tbviewztc.isChecked():
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+            elif (self.tbintegral.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0z,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0z,
-                                  color = colors[0], alpha=0.5, label = 'ch0rel')
-                
-                #find x coord for text
-                xcoord = self.dfa.time.max()/2
-                #find y coord for text
-                ycoord = self.dfa.ch0z.max()
-                #Put integral in a text
-                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch0,
-                              color=colors[0])
-            else:
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch0z.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f' %(self.intch0), color=colors[0])
+            elif (self.tbintegral.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+                self.ax1.plot(self.dfa.time, self.dfa.ch0ztc,
+                              color = colors[0], label = 'ch0')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch0ztc.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f' %(self.intch0tc), color=colors[0])
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0ztc,
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+            elif (self.tbintegral.isChecked() and (not self.tbtempcorrec.isChecked() and self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0zc,
                               color = colors[0], label = 'ch0')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch0zc.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f' %self.intch0c, color=colors[0])
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0zc,
-                                  color = colors[0], alpha=0.5, label = 'ch0rel')
-                #find x coord for text
-                xcoord = self.dfa.time.max()/2
-                #find y coord for text
-                ycoord = self.dfa.ch0zc.max()
-                #Put integral in a text
-                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch0c,
-                              color=colors[0])
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+            elif (self.tbintegral.isChecked() and (self.tbtempcorrec.isChecked() and self.tbcalibration.isChecked())):
+                self.ax1.plot(self.dfa.time, self.dfa.ch0zctc,
+                              color = colors[0], label = 'ch0')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch0zctc.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f' %self.intch0ctc, color=colors[0])
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0zctc,
+                                  color = colors[0], alpha = 0.5, label = 'ch0rel')
+
                 
         if self.tbviewch1.isChecked():
-            if self.tbviewraw.isChecked():
+            if (self.tbviewraw.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch1,
                               color = colors[1], label = 'ch1')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1,
-                                  color = colors[1], alpha=0.5, label = 'ch1rel')
-            elif self.tbviewtc.isChecked():
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+            elif (self.tbviewraw.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch1tc,
                               color = colors[1], label = 'ch1')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1tc,
-                                  color = colors[1], alpha=0.5, label = 'ch1rel')
-            elif self.tbviewztc.isChecked():
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+            elif (self.tbintegral.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch1z,
                               color = colors[1], label = 'ch1')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch1z.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1, self.absdosenocalib, self.reldosenocalib), color=colors[1])
+                self.ax1.text(coordx, coordy-1, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.relintch1, self.absdosenocalibrel, self.reldosenocalibrel), color=colors[1], alpha=0.5)
                 if self.relfileloaded:
-                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1tc,
-                                  color = colors[1], alpha=0.5, label = 'ch1rel')
-                #find x coord for text
-                xcoord = self.dfa.time.max()/2
-                #find y coord for text
-                ycoord = self.dfa.ch1z.max()
-                #Put integral in a text
-                self.ax1.text(xcoord, ycoord, 'int: %.2f' %self.intch1,
-                              color=colors[1])
-            else:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1z,
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+            elif (self.tbintegral.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+                self.ax1.plot(self.dfa.time, self.dfa.ch1ztc,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1ztc,
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch1ztc.max()
+                self.ax1.text(coordx, coordy-1, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.relintch1tc, self.absdosenocalibtcrel, self.reldosenocalibtcrel), color=colors[1], alpha=0.5)
+                self.ax1.text(coordx, coordy, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1tc, self.absdosenocalibtc, self.reldosenocalibtc), color=colors[1])
+            elif (self.tbintegral.isChecked() and (not self.tbtempcorrec.isChecked() and self.tbcalibration.isChecked())):
                 self.ax1.plot(self.dfa.time, self.dfa.ch1zc,
                               color = colors[1], label = 'ch1')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1zc,
-                                  color = colors[1], alpha=0.5, label = 'ch1rel')
-                #find x coord for text
-                xcoord = self.dfa.time.max()/2
-                #find y coord for text
-                ycoord = self.dfa.ch1zc.max()
-                #Put integral in a text
-                self.ax1.text(xcoord, ycoord, 'int: %.2f abs. dose: %.2f rel. dose: %.2f' %(self.intch1c,
-                                                                                           self.absdose,
-                                                                                           self.reldose),
-                              color=colors[1])
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch1zc.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1c, self.absdose, self.reldose), color=colors[1])
+            elif (self.tbintegral.isChecked() and (self.tbtempcorrec.isChecked() and self.tbcalibration.isChecked())):
+                self.ax1.plot(self.dfa.time, self.dfa.ch1zctc,
+                              color = colors[1], label = 'ch1')
+                if self.relfileloaded:
+                    self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1zctc,
+                                  color = colors[1], alpha = 0.5, label = 'ch1rel')
+                coordx = self.dfa.time.max() / 2
+                coordy = self.dfa.ch1zctc.max()
+                self.ax1.text(coordx, coordy, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1ctc, self.absdosetc, self.reldosetc), color=colors[1])
+                
        
         self.ax1.set_ylabel('volts (V)')
         self.ax1.legend()
@@ -712,6 +781,7 @@ class Measure(QMainWindow):
         self.tbviewch1.clicked.connect(self.viewplots)
         self.cbsecondplot.currentIndexChanged.connect(self.secondplot)
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
+        self.tbtempcorrec.clicked.connect(self.afterstopping)
 
         
     def secondplot(self, index):
@@ -772,6 +842,8 @@ class Measure(QMainWindow):
                    
             
     def startmeasuringforgood(self):
+            
+        self.tbtempcorrec.setEnabled(False)   
         #Refresh screen and reset buttons
         #clearLayout (self.gridmeasure)
         global measurements_done
@@ -859,7 +931,11 @@ class Measure(QMainWindow):
                                                                 self.v5Vmeas[i],
                                                                 self.v1058Vmeas[i]))
         self.filemeas.close()
+        self.tbtempcorrec.setEnabled(True)
+        self.afterstopping()
         
+        
+    def afterstopping(self):
         #Calculate integrals
         #first put in a dataframe
         df = pd.DataFrame({'time': self.times, 'temp':self.tempmeas,
@@ -875,11 +951,15 @@ class Measure(QMainWindow):
         print ('Start time: %.2f Finish time: %.2f' %(ts, tf))
         
         #calculate correction to temperature
-        df['ch0tc'] = df.ch0 - 0.06073665 * (df.temp - 26.5)
-        df['ch1tc'] = df.ch1 - 0.05862478 * (df.temp - 26.5)
+        df['ch0tc'] = df.ch0
+        df['ch1tc'] = df.ch1
+        if self.tbtempcorrec.isChecked():
+            df.loc[df.ch0<6.25, 'ch0tc'] = df.ch0 - (-0.012 * df.ch0 + 0.075) * (df.temp - 26.5)
+            df.loc[df.ch1<6.25, 'ch1tc'] = df.ch1 - (-0.012 * df.ch1 + 0.075) * (df.temp - 26.5)
+        
         
         #calculate the zeros
-        print ('mean zero ch0tc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()))
+        print ('mean zero ch0: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()))
         df['ch0z'] = df.ch0tc - df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()
         df['ch1z'] = df.ch1tc - df.loc[(df.time<ts)|(df.time>tf), 'ch1tc'].mean()
         

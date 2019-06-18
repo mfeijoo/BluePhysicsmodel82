@@ -324,14 +324,14 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          <rect>
           <x>10</x>
           <y>190</y>
-          <width>451</width>
-          <height>281</height>
+          <width>444</width>
+          <height>261</height>
          </rect>
         </property>
         <property name="title">
          <string>Relative Dose Calculation</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QFrame" name="frame_10">
            <property name="frameShape">
@@ -1935,7 +1935,6 @@ background-color:rgb(193,210,238);
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>
