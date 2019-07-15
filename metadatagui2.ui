@@ -367,6 +367,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                 <pointsize>19</pointsize>
                </font>
               </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
               <property name="maximum">
                <double>3.000000000000000</double>
               </property>
