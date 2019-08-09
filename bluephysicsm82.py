@@ -19,15 +19,12 @@ import atexit
 import serial
 
 
-number_of_ch = 2
-
-line_numb = 0
 
 colors = ['#C0392B', '#3498DB']
 
 
 #Read Metadata file and load data in a dictionary
-metadatakeylist = ['Save File As', 'File Name',
+metadatakeylist = ['Date Time','Save File As', 'File Name',
                    'Calibration Factor', 'Reference diff Voltage',
                    'Facility', 'Investigator', 'Source','Brand',
                    'Particles', 'Energy', 'Dose Rate', 'Gantry',
@@ -44,6 +41,7 @@ metadatafile = open('metadata.csv', 'r')
 listmetadata = [pair.split(',') for pair in metadatafile.readlines()]
 metadatafile.close()
 dmetadata = {key:value.strip() for [key,value] in listmetadata}
+
 
 #Global flag to indicate if there are measurements done
 measurements_done = False
@@ -886,6 +884,8 @@ class Measure(QMainWindow):
         
         if dmetadata['Save File As'] == 'Date/Time':
             dmetadata['File Name'] = time.strftime ('%d %b %Y %H:%M:%S')
+            
+        dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
         #only if emulator
         self.emulator = EmulatorThread()
