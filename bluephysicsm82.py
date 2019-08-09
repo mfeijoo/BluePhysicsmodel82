@@ -242,8 +242,8 @@ class Analyze (QMainWindow):
             #calculate correction to temperature
             self.dfrel['ch0tc'] = self.dfrel.ch0
             self.dfrel['ch1tc'] = self.dfrel.ch1
-            self.dfrel.loc[self.dfrel.ch0<6.26, 'ch0tc'] = self.dfrel.ch0 - (-0.012 * self.dfrel.ch0 + 0.075) * (self.dfrel.temp - 26.5)
-            self.dfrel.loc[self.dfrel.ch1<6.26, 'ch1tc'] = self.dfrel.ch1 - (-0.012 * self.dfrel.ch1 + 0.075) * (self.dfrel.temp - 26.5)
+            self.dfrel.loc[self.dfrel.ch0<6.26, 'ch0tc'] = self.dfrel.ch0 - (-0.012 * self.dfrel.ch0 + 0.075) * (self.dfrel.temp - 26.8)
+            self.dfrel.loc[self.dfrel.ch1<6.26, 'ch1tc'] = self.dfrel.ch1 - (-0.012 * self.dfrel.ch1 + 0.075) * (self.dfrel.temp - 26.8)
                 
             #calculate the zeros
             #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
@@ -319,8 +319,8 @@ class Analyze (QMainWindow):
         #calculate correction to temperature
         self.dfa['ch0tc'] = self.dfa.ch0
         self.dfa['ch1tc'] = self.dfa.ch1
-        self.dfa.loc[self.dfa.ch0<6.25, 'ch0tc'] = self.dfa.ch0 - (-0.012 * self.dfa.ch0 + 0.075) * (self.dfa.temp - 26.5)
-        self.dfa.loc[self.dfa.ch1<6.25, 'ch1tc'] = self.dfa.ch1 - (-0.012 * self.dfa.ch1 + 0.075) * (self.dfa.temp - 26.5)
+        self.dfa.loc[self.dfa.ch0<6.25, 'ch0tc'] = self.dfa.ch0 - (-0.012 * self.dfa.ch0 + 0.075) * (self.dfa.temp - 26.8)
+        self.dfa.loc[self.dfa.ch1<6.25, 'ch1tc'] = self.dfa.ch1 - (-0.012 * self.dfa.ch1 + 0.075) * (self.dfa.temp - 26.8)
         
         #calculate the zeros
         #print ('mean zero ch0tc: %.3f' %(self.dfa.loc[(self.dfa.time<ts)|(self.dfa.time>tf), 'ch0tc'].mean()))
@@ -454,7 +454,7 @@ class Analyze (QMainWindow):
                 coordx = self.dfa.time.max() / 2
                 coordy = self.dfa.ch1z.max()
                 self.ax1.text(coordx, coordy, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1, self.absdosenocalib, self.reldosenocalib), color=colors[1])
-                self.ax1.text(coordx, coordy-1, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.relintch1, self.absdosenocalibrel, self.reldosenocalibrel), color=colors[1], alpha=0.5)
+                self.ax1.text(coordx, coordy-1, 'int: %.2f abs dose: %.2f rel dose: %.2f' %(self.intch1, self.absdosenocalib, self.reldosenocalib), color=colors[1], alpha=0.5)
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch1z,
                                   color = colors[1], alpha = 0.5, label = 'ch1rel')
@@ -971,27 +971,27 @@ class Measure(QMainWindow):
         #calculate correction to temperature
         df['ch0tc'] = df.ch0
         df['ch1tc'] = df.ch1
-        if self.tbtempcorrec.isChecked():
-            df.loc[df.ch0<6.25, 'ch0tc'] = df.ch0 - (-0.012 * df.ch0 + 0.075) * (df.temp - 26.5)
-            df.loc[df.ch1<6.25, 'ch1tc'] = df.ch1 - (-0.012 * df.ch1 + 0.075) * (df.temp - 26.5)
+        #if self.tbtempcorrec.isChecked():
+            #df.loc[df.ch0<6.25, 'ch0tc'] = df.ch0 - (-0.012 * df.ch0 + 0.075) * (df.temp - 26.8)
+            #df.loc[df.ch1<6.25, 'ch1tc'] = df.ch1 - (-0.012 * df.ch1 + 0.075) * (df.temp - 26.8)
         
         
         #calculate the zeros
-        print ('mean zero ch0: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()))
-        df['ch0z'] = df.ch0tc - df.loc[(df.time<ts)|(df.time>tf), 'ch0tc'].mean()
-        df['ch1z'] = df.ch1tc - df.loc[(df.time<ts)|(df.time>tf), 'ch1tc'].mean()
+        print ('mean zero ch0: %.3f' %(df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()))
+        df['ch0z'] = df.ch0tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()
+        df['ch1z'] = df.ch1tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch1tc'].mean()
         
         #calculate integrals not corrected
-        intch0 = df.loc[(df.time>ts)&(df.time<tf), 'ch0z'].sum()
-        intch1 = df.loc[(df.time>ts)&(df.time<tf), 'ch1z'].sum()
+        intch0 = df.loc[:, 'ch0z'].sum()
+        intch1 = df.loc[:, 'ch1z'].sum()
         
         #Calculate ch0 corrected
         df['ch0zc'] = df.ch0z * float(dmetadata['Calibration Factor'])
         df['ch1zc'] = df.ch1z
         
         #Calculate integrals corrected
-        intch0c = df.loc[(df.time>ts)&(df.time<tf), 'ch0zc'].sum()
-        intch1c = df.loc[(df.time>ts)&(df.time<tf), 'ch1zc'].sum()
+        intch0c = df.loc[:, 'ch0zc'].sum()
+        intch1c = df.loc[:, 'ch1zc'].sum()
         
         #calculate absolute dose
         absdose = intch1c - intch0c
