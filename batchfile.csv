@@ -1,0 +1,4 @@
+Save File As,File Name,Calibration Factor,Reference diff Voltage,Facility,Investigator,Source,Brand,Particles,Energy,Dose Rate,Gantry,Collimator,Couch,Field Size X1,Field Size X2,Field Size Y1,Field Size Y2,Ion Chamber,Setup,Distance,MU,PS,Transducer Type,Sensor Type,Sensor Size,Fiber Diameter,Fiber Length,Sensor Position X,Sensor Position Y,Sensor Position Z,Reference Fiber Diameter,Reference Fiber Length,Comments
+Custom,batchtest1,1,100,Blue Physics,Marcos,Linac,Varian True Beam,Photons,10FFF,2400,0,0,0,5,5,5,5,0,SSD,100,200,56,MCP S13360’1325CS,Fiber,3,0.25,2000,0,0,10,0.25,2000,Batch 1
+Custom,batchtest2,1,100,Blue Physics,Marcos,Linac,Varian True Beam,Photons,11FFF,2400,1,1,1,6,6,6,6,0,SSD,100,200,56,MCP S13360’1325CS,Fiber,3,1.25,2000,0,0,10,0.25,2000,Batch 2
+Custom,batchtest3,1,100,Blue Physics,Marcos,Linac,Varian True Beam,Photons,12FFF,2400,2,2,2,7,7,7,7,0,SSD,100,200,56,MCP S13360’1325CS,Fiber,3,2.25,2000,0,0,10,0.25,2000,Batch 3

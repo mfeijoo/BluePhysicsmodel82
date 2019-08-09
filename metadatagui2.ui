@@ -27,7 +27,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>iconspd/onlysphere.png</normaloff>iconspd/onlysphere.png</iconset>
+    <normaloff>../model9/iconspd/onlysphere.png</normaloff>../model9/iconspd/onlysphere.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(255, 255, 255);</string>
@@ -367,6 +367,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                 <pointsize>19</pointsize>
                </font>
               </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
               <property name="maximum">
                <double>3.000000000000000</double>
               </property>
@@ -431,6 +434,83 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QFrame" name="frame_14">
+        <property name="geometry">
+         <rect>
+          <x>460</x>
+          <y>90</y>
+          <width>261</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QCheckBox" name="cbbatchfile">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>131</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Batch tests</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoRepeat">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_3">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>50</y>
+           <width>151</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>line # from batchfile.csv</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="batchfilelinenumb">
+         <property name="geometry">
+          <rect>
+           <x>170</x>
+           <y>40</y>
+           <width>51</width>
+           <height>33</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
        </widget>
       </widget>
       <widget class="QWidget" name="pagelinac">
@@ -1179,6 +1259,19 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
             <double>0.100000000000000</double>
            </property>
           </widget>
+          <widget class="QCheckBox" name="cbsymetric">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>100</width>
+             <height>26</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Symetric</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -1751,7 +1844,7 @@ background-color:rgb(193,210,238);
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>iconspd/icons8-home-page-80.png</normaloff>iconspd/icons8-home-page-80.png</iconset>
+           <normaloff>../model9/iconspd/icons8-home-page-80.png</normaloff>../model9/iconspd/icons8-home-page-80.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1783,7 +1876,7 @@ background-color:rgb(193,210,238);
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>iconspd/generalmetadata.png</normaloff>iconspd/generalmetadata.png</iconset>
+           <normaloff>../model9/iconspd/generalmetadata.png</normaloff>../model9/iconspd/generalmetadata.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1821,7 +1914,7 @@ background-color:rgb(193,210,238);
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>iconspd/Linac.png</normaloff>iconspd/Linac.png</iconset>
+           <normaloff>../model9/iconspd/Linac.png</normaloff>../model9/iconspd/Linac.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1856,7 +1949,7 @@ background-color:rgb(193,210,238);
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>iconspd/Sensor.png</normaloff>iconspd/Sensor.png</iconset>
+           <normaloff>../model9/iconspd/Sensor.png</normaloff>../model9/iconspd/Sensor.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1891,7 +1984,7 @@ background-color:rgb(193,210,238);
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>iconspd/draw.png</normaloff>iconspd/draw.png</iconset>
+           <normaloff>../model9/iconspd/draw.png</normaloff>../model9/iconspd/draw.png</iconset>
          </property>
          <property name="iconSize">
           <size>
