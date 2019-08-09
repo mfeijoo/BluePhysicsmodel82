@@ -40,6 +40,7 @@ metadatakeylist = ['Date Time','Save File As', 'File Name',
 metadatafile = open('metadata.csv', 'r')
 listmetadata = [pair.split(',') for pair in metadatafile.readlines()]
 metadatafile.close()
+global dmetadata
 dmetadata = {key:value.strip() for [key,value] in listmetadata}
 
 
@@ -62,7 +63,7 @@ class EmulatorThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.stop = False
-        self.ser2 = serial.Serial ('/dev/pts/2', 115200, timeout=1)
+        self.ser2 = serial.Serial ('/dev/pts/3', 115200, timeout=1)
         file = open('./rawdata/emulatormeasurements.csv', 'r')
         self.lines =  file.readlines()
         file.close()
@@ -94,8 +95,8 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        self.ser = serial.Serial ('/dev/pts/1', 115200, timeout=1)
-        #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
+        #self.ser = serial.Serial ('/dev/pts/4', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
         self.wait()
@@ -103,12 +104,12 @@ class MeasureThread(QThread):
     def run(self):
         #One reading to discard garbge
         #comment if emulator
-        #reading0 = self.ser.readline().decode().strip().split(',')
+        reading0 = self.ser.readline().decode().strip().split(',')
 
         #second reading to check starting time
         #comment if emulator
-        #reading1 = self.ser.readline().decode().strip().split(',')
-        #tstart = int(reading1[0])
+        reading1 = self.ser.readline().decode().strip().split(',')
+        tstart = int(reading1[0])
         
         while True:
             
@@ -119,8 +120,8 @@ class MeasureThread(QThread):
                 reading = self.ser.readline().decode().strip().split(',')
                 #print (reading)
                 #only if emulator
-                listatosend = [float(i) for i in reading]
-                #listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
+                #listatosend = [float(i) for i in reading]
+                listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
                 #print (listatosend)
                 self.info.emit(listatosend)
             except:
@@ -609,10 +610,28 @@ class Metadata (QMainWindow):
         self.cbcustom.clicked.connect(self.saveasfilename)
         self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)
         self.cbbatchfile.clicked.connect(self.batchfile)
+        self.cbsymetric.clicked.connect(self.symetry)
+        self.y1coord.valueChanged.connect(self.symy1ch)
+        
+    def symy1ch(self, value):
+        if self.cbsymetric.isChecked():
+            self.x1coord.setValue(value)
+            self.x2coord.setValue(value)
+            self.y2coord.setValue(value)
+
+    def symetry(self):
+        if self.cbsymetric.isChecked():
+            self.x1coord.setEnabled(False)
+            self.x2coord.setEnabled(False)
+            self.y2coord.setEnabled(False)
+        else:
+            self.x1coord.setEnabled(True)
+            self.x2coord.setEnabled(True)
+            self.y2coord.setEnabled(True)
         
     def batchfile(self):
         if self.cbbatchfile.isChecked():
-            self.batchfileline = int(self.batchfilelinenumb.text())
+            self.batchfileline = self.batchfilelinenumb.value()
             dfbatch = pd.read_csv('batchfile.csv').astype(str)
             global dmetadata
             dmetadata = dfbatch.iloc[self.batchfileline,:].to_dict()
@@ -888,8 +907,8 @@ class Measure(QMainWindow):
         dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
         #only if emulator
-        self.emulator = EmulatorThread()
-        self.emulator.start()
+        #self.emulator = EmulatorThread()
+        #self.emulator.start()
         
         self.measurethread = MeasureThread()
         self.measurethread.start()
@@ -921,7 +940,7 @@ class Measure(QMainWindow):
         
     def stopmeasurement(self):
         #emulator
-        self.emulator.stopping()
+        #self.emulator.stopping()
         self.measurethread.stopping()
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
@@ -1022,11 +1041,11 @@ class Measure(QMainWindow):
         #If batch file is selected, load the next line in the file in the dmetadata
         #and in metadata gui
         if mymainmenu.mymetadata.cbbatchfile.isChecked():
-            self.batchlinenumbnow = int(mymainmenu.mymetadata.batchfilelinenumb.text())
+            self.batchlinenumbnow = mymainmenu.mymetadata.batchfilelinenumb.value()
             dfbatch = pd.read_csv('batchfile.csv').astype(str)
             self.batchlinenumbnext = self.batchlinenumbnow + 1
             if self.batchlinenumbnext < len(dfbatch):
-                mymainmenu.mymetadata.batchfilelinenumb.setText('%s' %self.batchlinenumbnext)
+                mymainmenu.mymetadata.batchfilelinenumb.setValue(self.batchlinenumbnext)
                 global dmetadata
                 dmetadata = dfbatch.iloc[self.batchlinenumbnext,:].to_dict()
                 mymainmenu.mymetadata.metadatadictogui()
@@ -1041,6 +1060,7 @@ class Measure(QMainWindow):
 
 def goodbye():
     print ('bye')
+    print (dmetadata['Date Time'])
     metadatafile = open('metadata.csv', 'w')
     for key in metadatakeylist:
         metadatafile.write('%s,%s\n' %(key, dmetadata[key]))

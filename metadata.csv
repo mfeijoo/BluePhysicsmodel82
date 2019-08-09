@@ -1,0 +1,35 @@
+Date Time,nan
+Save File As,Custom
+File Name,10Acalibhigh-3
+Calibration Factor,1.0
+Reference diff Voltage,100.0
+Facility,ERESA
+Investigator,Joan Rosello
+Source,LINAC
+Brand,Varian
+Particles,Photons
+Energy,10FFF
+Dose Rate,2400
+Gantry,0
+Collimator,0
+Couch,0
+Field Size X1,1.5
+Field Size X2,1.5
+Field Size Y1,1.5
+Field Size Y2,10.0
+Ion Chamber,0.0
+Setup,SSD
+Distance,100
+MU,200
+PS,56
+Transducer Type,MPPC S13360-1325CS
+Sensor Type,Fiber
+Sensor Size,3
+Fiber Diameter,0.25
+Fiber Length,2000
+Sensor Position X,0.0
+Sensor Position Y,0.0
+Sensor Position Z,10.0
+Reference Fiber Diameter,0.25
+Reference Fiber Length,2000
+Comments,Batch 3
