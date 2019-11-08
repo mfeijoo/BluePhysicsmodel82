@@ -451,6 +451,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          <enum>QFrame::Raised</enum>
         </property>
         <widget class="QCheckBox" name="cbbatchfile">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>20</x>
@@ -496,6 +499,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          </property>
         </widget>
         <widget class="QSpinBox" name="batchfilelinenumb">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>170</x>

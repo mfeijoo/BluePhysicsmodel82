@@ -353,7 +353,7 @@ background-color:rgb(193,210,238);
           <item>
            <widget class="QToolButton" name="tbtempcorrec">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

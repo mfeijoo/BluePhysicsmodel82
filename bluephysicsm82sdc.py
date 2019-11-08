@@ -95,8 +95,8 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        #self.ser = serial.Serial ('/dev/pts/4', 115200, timeout=1)
-        self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/pts/4', 115200, timeout=1)
+        #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
         self.wait()
@@ -104,12 +104,12 @@ class MeasureThread(QThread):
     def run(self):
         #One reading to discard garbge
         #comment if emulator
-        reading0 = self.ser.readline().decode().strip().split(',')
+        #reading0 = self.ser.readline().decode().strip().split(',')
 
         #second reading to check starting time
         #comment if emulator
-        reading1 = self.ser.readline().decode().strip().split(',')
-        tstart = int(reading1[0])
+        #reading1 = self.ser.readline().decode().strip().split(',')
+        #tstart = int(reading1[0])
         
         while True:
             
@@ -120,8 +120,8 @@ class MeasureThread(QThread):
                 reading = self.ser.readline().decode().strip().split(',')
                 #print (reading)
                 #only if emulator
-                #listatosend = [float(i) for i in reading]
-                listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
+                listatosend = [float(i) for i in reading]
+                #listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
                 #print (listatosend)
                 self.info.emit(listatosend)
             except:
@@ -213,7 +213,7 @@ class Analyze (QMainWindow):
         self.tbintegral.clicked.connect(self.plot1)
         self.tbtempcorrec.clicked.connect(self.plot1)
         self.tbcalibration.clicked.connect(self.plot1)
-        self.cbsecondplot.currentIndexChanged.connect(self.plot2)
+        #self.cbsecondplot.currentIndexChanged.connect(self.plot2)
         self.tbrelfile.clicked.connect(self.relfile)
 
     def relfile(self):
@@ -222,7 +222,7 @@ class Analyze (QMainWindow):
             #with reference file loaded as self.df
             relfilename = QFileDialog.getOpenFileName(self, 'Open file',
                                                       './rawdata')
-            self.dfrel = pd.read_csv(relfilename[0], skiprows=34)
+            self.dfrel = pd.read_csv(relfilename[0], skiprows=35, skipfooter=4)
             
             #flag to inidcate we have a relative file loaded
             self.relfileloaded = True
@@ -306,7 +306,7 @@ class Analyze (QMainWindow):
         filename_only = filename[0].split('/')[-1]
         self.setWindowTitle('Blue Physics Model 8.2 Analyze File: %s'
                              %filename_only)
-        self.dfa = pd.read_csv(filename[0], skiprows=34)
+        self.dfa = pd.read_csv(filename[0], skiprows=35, skipfooter=4)
         
         #Calculate start and end of radiation
         #Assuming ch1 is where the sensor is and it has the largest differences
@@ -609,7 +609,7 @@ class Metadata (QMainWindow):
         self.cbdatetime.clicked.connect(self.saveasfilename)
         self.cbcustom.clicked.connect(self.saveasfilename)
         self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)
-        self.cbbatchfile.clicked.connect(self.batchfile)
+        #self.cbbatchfile.clicked.connect(self.batchfile)
         self.cbsymetric.clicked.connect(self.symetry)
         self.y1coord.valueChanged.connect(self.symy1ch)
         
@@ -815,7 +815,7 @@ class Measure(QMainWindow):
         self.tbviewch1.clicked.connect(self.viewplots)
         self.cbsecondplot.currentIndexChanged.connect(self.secondplot)
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
-        self.tbtempcorrec.clicked.connect(self.afterstopping)
+        #self.tbtempcorrec.clicked.connect(self.afterstopping)
         self.tbdarkcurrent.clicked.connect(self.rmdarkcurrent)
 
     def rmdarkcurrent(self):
@@ -922,8 +922,8 @@ class Measure(QMainWindow):
         dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
         #only if emulator
-        #self.emulator = EmulatorThread()
-        #self.emulator.start()
+        self.emulator = EmulatorThread()
+        self.emulator.start()
         
         self.measurethread = MeasureThread()
         self.measurethread.start()
@@ -955,7 +955,7 @@ class Measure(QMainWindow):
         
     def stopmeasurement(self):
         #emulator
-        #self.emulator.stopping()
+        self.emulator.stopping()
         self.measurethread.stopping()
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
@@ -965,30 +965,6 @@ class Measure(QMainWindow):
         global measurements_done
         measurements_done = True
         
-        #Save data in files and close files
-        
-        self.filemeas = open ('./rawdata/%s.csv' %dmetadata['File Name'], 'w')
-
-        for key in metadatakeylist:
-            self.filemeas.write('%s,%s\n' %(key,dmetadata[key]))
-
-        self.filemeas.write('time,temp,ch0,ch1,PS,-12V,5V,10.58V\n')
-        
-        for i in range(len(self.times)):
-            self.filemeas.write('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n' %(self.times[i],
-                                                                self.tempmeas[i],
-                                                                self.ch0meas[i],
-                                                                self.ch1meas[i],
-                                                                self.PSmeas[i],
-                                                                self.minus12Vmeas[i],
-                                                                self.v5Vmeas[i],
-                                                                self.v1058Vmeas[i]))
-        self.filemeas.close()
-        self.tbtempcorrec.setEnabled(True)
-        self.afterstopping()
-        
-        
-    def afterstopping(self):
         #Calculate integrals
         #first put in a dataframe
         df = pd.DataFrame({'time': self.times, 'temp':self.tempmeas,
@@ -1012,27 +988,27 @@ class Measure(QMainWindow):
         
         
         #calculate the zeros
-        print ('mean zero ch0: %.3f' %(df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()))
-        df['ch0z'] = df.ch0tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()
-        df['ch1z'] = df.ch1tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch1tc'].mean()
+        print ('mean zero ch0: %.3f' %(df.loc[(df.time<(ts-1))|(df.time>(tf+1)), 'ch0tc'].mean()))
+        df['ch0z'] = df.ch0tc - df.loc[(df.time<(ts-1))|(df.time>(tf+1)), 'ch0tc'].mean()
+        df['ch1z'] = df.ch1tc - df.loc[(df.time<(ts-1))|(df.time>(tf+1)), 'ch1tc'].mean()
         
         #calculate integrals not corrected
-        intch0 = df.loc[:, 'ch0z'].sum()
-        intch1 = df.loc[:, 'ch1z'].sum()
+        self.intch0 = df.loc[(df.time>(ts-1))&(df.time<(tf+1)), 'ch0z'].sum()
+        self.intch1 = df.loc[(df.time>(ts-1))&(df.time<(tf+1)), 'ch1z'].sum()
         
         #Calculate ch0 corrected
         df['ch0zc'] = df.ch0z * float(dmetadata['Calibration Factor'])
         df['ch1zc'] = df.ch1z
         
         #Calculate integrals corrected
-        intch0c = df.loc[:, 'ch0zc'].sum()
-        intch1c = df.loc[:, 'ch1zc'].sum()
+        self.intch0c = df.loc[(df.time>(ts-1))&(df.time<(tf+1)), 'ch0zc'].sum()
+        self.intch1c = df.loc[(df.time>(ts-1))&(df.time<(tf+1)), 'ch1zc'].sum()
         
         #calculate absolute dose
-        absdose = intch1c - intch0c
+        self.absdose = self.intch1c - self.intch0c
         
         #calculate relative dose
-        reldose = (absdose / float(dmetadata['Reference diff Voltage'])) * 100
+        self.reldose = (self.absdose / float(dmetadata['Reference diff Voltage'])) * 100
         
         self.plotitemchs.clear()
         #draw the new plots with zeros corrected
@@ -1046,17 +1022,17 @@ class Measure(QMainWindow):
         
         
         #Put integrals in the graph
-        ch0text = pg.TextItem('Int %s: %.2fV' %('ch0', intch0), color = '#C0392B')
+        ch0text = pg.TextItem('Int %s: %.2fV' %('ch0', self.intch0), color = '#C0392B')
         ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5)
         self.plotitemchs.addItem(ch0text)
         
-        ch1text = pg.TextItem('Int %s: %.2f, Abs. Dose: %.2f, Rel. Dose: %.2f' %('ch1', intch1, absdose, reldose), color = '#3498DB')
+        ch1text = pg.TextItem('Int %s: %.2f, Abs. Dose: %.2f, Rel. Dose: %.2f' %('ch1', self.intch1, self.absdose, self.reldose), color = '#3498DB')
         ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5)
         self.plotitemchs.addItem(ch1text)
         
         #If batch file is selected, load the next line in the file in the dmetadata
         #and in metadata gui
-        if mymainmenu.mymetadata.cbbatchfile.isChecked():
+        """if mymainmenu.mymetadata.cbbatchfile.isChecked():
             self.batchlinenumbnow = mymainmenu.mymetadata.batchfilelinenumb.value()
             dfbatch = pd.read_csv('batchfile.csv').astype(str)
             self.batchlinenumbnext = self.batchlinenumbnow + 1
@@ -1066,7 +1042,34 @@ class Measure(QMainWindow):
                 dmetadata = dfbatch.iloc[self.batchlinenumbnext,:].to_dict()
                 mymainmenu.mymetadata.metadatadictogui()
                 
-        #Now ready for the next measurement
+        #Now ready for the next measurement"""
+        
+        #Save data in files and close files
+        
+        self.filemeas = open ('./rawdata/%s.csv' %dmetadata['File Name'], 'w')
+
+        for key in metadatakeylist:
+            self.filemeas.write('%s,%s\n' %(key,dmetadata[key]))
+
+        self.filemeas.write('time,temp,ch0,ch1,PS,-12V,5V,10.58V\n')
+        
+        for i in range(len(self.times)):
+            self.filemeas.write('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n' %(self.times[i],
+                                                                self.tempmeas[i],
+                                                                self.ch0meas[i],
+                                                                self.ch1meas[i],
+                                                                self.PSmeas[i],
+                                                                self.minus12Vmeas[i],
+                                                                self.v5Vmeas[i],
+                                                                self.v1058Vmeas[i]))
+        self.filemeas.write('integral ch0 (V),%.4f\n' %self.intch0)
+        self.filemeas.write('integral ch1 (V),%.4f\n' %self.intch1)
+        self.filemeas.write('Voltage proportional to absolute dose (V),%.4f\n' %self.absdose)
+        self.filemeas.write('relative dose (%%),%.4f\n' %self.reldose)
+        self.filemeas.close()
+        self.tbtempcorrec.setEnabled(True)
+        #self.afterstopping()
+        
 
 
     def backmainmenu(self):
