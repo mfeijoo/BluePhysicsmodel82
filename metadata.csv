@@ -1,35 +1,36 @@
-Date Time,07 Nov 2019 20:28:17
+Date Time,18 Nov 2019 11:48:31
 Save File As,Default
 File Name,default
-Calibration Factor,1.0
-Reference diff Voltage,100.0
-Facility,ERESA
-Investigator,Joan Rosello
-Source,LINAC
+Adjacent Channels Ratio,1
+Reference Charge,100
+Calibration Factor,1
+Facility,Blue Physics
+Investigator,Marcos Feijoo
+Source,Gamma Knife
 Brand,Varian
 Particles,Photons
-Energy,10FFF
-Dose Rate,2400
+Energy,6FFF
+Dose Rate,1400
 Gantry,0
 Collimator,0
 Couch,0
-Field Size X1,1.5
-Field Size X2,1.5
-Field Size Y1,1.5
-Field Size Y2,10.0
-Ion Chamber,0.0
+Field Size X1,1
+Field Size X2,1
+Field Size Y1,1
+Field Size Y2,1
+Ion Chamber,199.5
 Setup,SSD
 Distance,100
 MU,200
-PS,56
+PS,57000
 Transducer Type,MPPC S13360-1325CS
 Sensor Type,Fiber
-Sensor Size,3
+Sensor Size,2
 Fiber Diameter,0.25
 Fiber Length,2000
-Sensor Position X,0.0
-Sensor Position Y,0.0
-Sensor Position Z,10.0
+Sensor Position X,0
+Sensor Position Y,0
+Sensor Position Z,20
 Reference Fiber Diameter,0.25
 Reference Fiber Length,2000
-Comments,Batch 3
+Comments,Test

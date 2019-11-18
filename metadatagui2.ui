@@ -324,16 +324,28 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          <rect>
           <x>10</x>
           <y>190</y>
-          <width>444</width>
-          <height>261</height>
+          <width>431</width>
+          <height>300</height>
          </rect>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>300</height>
+         </size>
+        </property>
         <property name="title">
-         <string>Relative Dose Calculation</string>
+         <string>Dose Calculation</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QFrame" name="frame_10">
+          <widget class="QFrame" name="frame_4">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -344,15 +356,15 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
             <item>
              <widget class="QLabel" name="label_24">
               <property name="text">
-               <string>Calibration factor ch1/ch0:</string>
+               <string>Adjacent Channels Ratio (ch1/ch0:)</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sbcalibfactor">
+             <widget class="QDoubleSpinBox" name="sbacr">
               <property name="minimumSize">
                <size>
-                <width>91</width>
+                <width>125</width>
                 <height>51</height>
                </size>
               </property>
@@ -366,6 +378,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                <font>
                 <pointsize>19</pointsize>
                </font>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
               <property name="decimals">
                <number>3</number>
@@ -386,6 +401,12 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          </item>
          <item>
           <widget class="QFrame" name="frame_16">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -396,12 +417,12 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
             <item>
              <widget class="QLabel" name="label_26">
               <property name="text">
-               <string>Reference Field difference Voltage (V):</string>
+               <string>Reference Charge (nC):</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sbreferencedose">
+             <widget class="QDoubleSpinBox" name="sbreferenceV">
               <property name="minimumSize">
                <size>
                 <width>125</width>
@@ -419,14 +440,81 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                 <pointsize>19</pointsize>
                </font>
               </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
               <property name="maximum">
                <double>1024.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.001000000000000</double>
+              </property>
+              <property name="value">
+               <double>100.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frame_7">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>Calibration Factor (cGy/nC):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="sbcalibrationfactor">
+              <property name="minimumSize">
+               <size>
+                <width>125</width>
+                <height>51</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>125</width>
+                <height>51</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>19</pointsize>
+               </font>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="decimals">
+               <number>4</number>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
               </property>
               <property name="singleStep">
                <double>0.010000000000000</double>
               </property>
               <property name="value">
-               <double>100.000000000000000</double>
+               <double>1.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -638,7 +726,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
               </font>
              </property>
              <property name="text">
-              <string>MU's</string>
+              <string>MU's/minutes</string>
              </property>
             </widget>
            </item>
@@ -712,6 +800,11 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              <item>
               <property name="text">
                <string>LINAC</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Gamma Knife</string>
               </property>
              </item>
              <item>
@@ -1014,7 +1107,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
               </font>
              </property>
              <property name="text">
-              <string>Collimator (degrees)</string>
+              <string>Collimator (degrees/size)</string>
              </property>
             </widget>
            </item>
@@ -1600,7 +1693,17 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              </item>
              <item>
               <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
               </property>
              </item>
              <item>
@@ -1776,9 +1879,9 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'PibotoLt'; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt;&quot;&gt;Test&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
-          <property name="placeholderText" stdset="0">
+          <property name="placeholderText">
            <string>Put here any additional comment</string>
           </property>
          </widget>
