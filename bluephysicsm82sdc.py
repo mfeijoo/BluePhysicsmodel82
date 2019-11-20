@@ -30,6 +30,7 @@ metadatakeylist = [key for [key, value] in listmetadata]
 metadatafile.close()
 global dmetadata
 dmetadata = {key:value.strip() for [key,value] in listmetadata}
+#print(metadatakeylist)
 
 
 #Global flag to indicate if there are measurements done
@@ -51,7 +52,7 @@ class EmulatorThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.stop = False
-        self.ser2 = serial.Serial ('/dev/pts/1', 115200, timeout=1)
+        self.ser2 = serial.Serial ('/dev/pts/2', 115200, timeout=1)
         file = open('./rawdata/emulatormeasurements.csv', 'r')
         self.lines =  file.readlines()
         file.close()
@@ -83,7 +84,7 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        self.ser = serial.Serial ('/dev/pts/2', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/pts/3', 115200, timeout=1)
         #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
@@ -129,14 +130,65 @@ class MainMenu (QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         loadUi("mainmenugui.ui", self)
-        self.mymeasure = Measure()
         self.mymetadata = Metadata()
+        self.mymeasure = Measure()
+        self.metadatadictogui()
         #self.myanalyze = Analyze()
         self.signals()
         self.setwindowstitle()
         
+    def metadatadictogui(self):
+        
+        if dmetadata['Save File As'] == 'Default':
+            self.mymetadata.cbdefault.setChecked(True)
+            self.mymetadata.cbcustom.setChecked(False)
+            self.mymetadata.lefilename.setText('default')
+            self.mymetadata.lefilename.setText(dmetadata['File Name'])
+        elif dmetadata['Save File As'] == 'Custom':
+            self.mymetadata.cbdefault.setChecked(False)
+            self.mymetadata.cbcustom.setChecked(True)
+            #self.lefilename.setReadOnly(False)
+            self.mymetadata.lefilename.setText(dmetadata['File Name'])
+        
+        self.mymetadata.sbacr.setValue(float(dmetadata['Adjacent Channels Ratio']))
+        self.mymetadata.sbreferenceV.setValue(float(dmetadata['Reference Charge']))
+        self.mymetadata.sbcalibrationfactor.setValue(float(dmetadata['Calibration Factor']))
+        self.mymetadata.lefacility.setText(dmetadata['Facility'])
+        self.mymetadata.leinvestigator.setText(dmetadata['Investigator'])
+        self.mymetadata.sbintegrationtime.setValue(int(dmetadata['Integration Time']))
+        self.mymetadata.cbopmode.setCurrentText(dmetadata['Operational Mode'])
+        self.mymetadata.cbsource.setCurrentText(dmetadata['Source'])
+        self.mymetadata.linacbrand.setCurrentText(dmetadata['Brand'])
+        self.mymetadata.linacparticles.setCurrentText(dmetadata['Particles'])
+        self.mymetadata.linacenergy.setCurrentText(dmetadata['Energy'])
+        self.mymetadata.linacdoserate.setValue(int(dmetadata['Dose Rate']))
+        self.mymetadata.linacgantry.setValue(int(dmetadata['Gantry']))
+        self.mymetadata.linaccollimator.setValue(int(dmetadata['Collimator']))
+        self.mymetadata.linaccouch.setValue(int(dmetadata['Couch']))
+        self.mymetadata.x1coord.setValue(float(dmetadata['Field Size X1']))
+        self.mymetadata.x2coord.setValue(float(dmetadata['Field Size X2']))
+        self.mymetadata.y1coord.setValue(float(dmetadata['Field Size Y1']))
+        self.mymetadata.y2coord.setValue(float(dmetadata['Field Size Y2']))
+        self.mymeasure.sbicmeas.setValue(float(dmetadata['IC Measure']))
+        self.mymeasure.sbictemp.setValue(float(dmetadata['IC Temperature']))
+        self.mymeasure.sbicpress.setValue(float(dmetadata['IC Pressure']))
+        self.mymetadata.linacssdsad.setCurrentText(dmetadata['Setup'])
+        self.mymetadata.linacssdsaddist.setValue(int(dmetadata['Distance']))
+        self.mymetadata.linacmus.setValue(int(dmetadata['MU']))
+        self.mymetadata.transducertype.setCurrentText(dmetadata['Transducer Type'])
+        self.mymetadata.sensortype.setCurrentText(dmetadata['Sensor Type'])
+        self.mymetadata.sensorsize.setCurrentText(dmetadata['Sensor Size'])
+        self.mymetadata.sensorfiberdiam.setCurrentText(dmetadata['Fiber Diameter'])
+        self.mymetadata.sensorfiberlength.setValue(int(dmetadata['Fiber Length']))
+        self.mymetadata.sensorpositionx.setValue(float(dmetadata['Sensor Position X']))
+        self.mymetadata.sensorpositiony.setValue(float(dmetadata['Sensor Position Y']))
+        self.mymetadata.sensorpositionz.setValue(float(dmetadata['Sensor Position Z']))
+        self.mymetadata.referencefiberdiam.setCurrentText(dmetadata['Reference Fiber Diameter'])
+        self.mymetadata.referencefiberlength.setValue(int(dmetadata['Reference Fiber Length']))
+        self.mymetadata.comments.setText(dmetadata['Comments'])
+        
     def setwindowstitle(self):
-        windowstitle = 'Blue Physics Model 8.2 File: %s' %(dmetadata['File Name'])
+        windowstitle = 'Blue Physics Model 8.2.2 File: %s' %(dmetadata['File Name'])
         self.setWindowTitle(windowstitle)
         self.mymeasure.setWindowTitle(windowstitle)
         self.mymetadata.setWindowTitle(windowstitle)
@@ -199,7 +251,6 @@ class Analyze (QMainWindow):
         self.tbviewch1.clicked.connect(self.plot1)
         self.tbviewraw.clicked.connect(self.plot1)
         self.tbintegral.clicked.connect(self.plot1)
-        self.tbtempcorrec.clicked.connect(self.plot1)
         self.tbcalibration.clicked.connect(self.plot1)
         #self.cbsecondplot.currentIndexChanged.connect(self.plot2)
         self.tbrelfile.clicked.connect(self.relfile)
@@ -301,7 +352,7 @@ class Analyze (QMainWindow):
         self.dfa['ch1diff'] = self.dfa.ch1.diff()
         self.ts = self.dfa.loc[self.dfa.ch1diff == self.dfa.ch1diff.max(), 'time'].item()
         self.tf = self.dfa.loc[self.dfa.ch1diff == self.dfa.ch1diff.min(), 'time'].item()
-        print ('Start time: %.2f Finish time: %.2f' %(self.ts, self.tf))
+        #print ('Start time: %.2f Finish time: %.2f' %(self.ts, self.tf))
         
         #calculate correction to temperature
         self.dfa['ch0tc'] = self.dfa.ch0
@@ -362,7 +413,6 @@ class Analyze (QMainWindow):
         self.cbsecondplot.setEnabled(True)
         self.tbviewraw.setEnabled(True)
         self.tbintegral.setEnabled(True)
-        self.tbtempcorrec.setEnabled(True)
         self.tbcalibration.setEnabled(True)
 
 
@@ -372,19 +422,19 @@ class Analyze (QMainWindow):
         self.ax1.grid(True)
 
         if self.tbviewch0.isChecked():
-            if (self.tbviewraw.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+            if (self.tbviewraw.isChecked() and  not self.tbcalibration.isChecked()):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0,
                                   color = colors[0], alpha = 0.5, label = 'ch0rel')
-            elif (self.tbviewraw.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+            elif (self.tbviewraw.isChecked() and not self.tbcalibration.isChecked()):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0tc,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
                     self.ax1.plot(self.dfrel.newtimerel, self.dfrel.ch0tc,
                                   color = colors[0], alpha = 0.5, label = 'ch0rel')
-            elif (self.tbintegral.isChecked() and (not self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+            elif (self.tbintegral.isChecked() and not self.tbcalibration.isChecked()):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0z,
                               color = colors[0], label = 'ch0')
                 if self.relfileloaded:
@@ -393,7 +443,7 @@ class Analyze (QMainWindow):
                 coordx = self.dfa.time.max() / 2
                 coordy = self.dfa.ch0z.max()
                 self.ax1.text(coordx, coordy, 'int: %.2f' %(self.intch0), color=colors[0])
-            elif (self.tbintegral.isChecked() and (self.tbtempcorrec.isChecked() and not self.tbcalibration.isChecked())):
+            elif (self.tbintegral.isChecked() and not self.tbcalibration.isChecked()):
                 self.ax1.plot(self.dfa.time, self.dfa.ch0ztc,
                               color = colors[0], label = 'ch0')
                 coordx = self.dfa.time.max() / 2
@@ -531,61 +581,7 @@ class Metadata (QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         loadUi("metadatagui2.ui", self)
-        self.metadatadictogui()
         self.signals()
-        #self.cbsaveoncurrentmeasurements.setChecked(True)
-        
-    def metadatadictogui(self):
-        
-        if dmetadata['Save File As'] == 'Default':
-            self.cbdefault.setChecked(True)
-            self.cbdatetime.setChecked(False)
-            self.cbcustom.setChecked(False)
-            self.lefilename.setText('default')
-        elif dmetadata['Save File As'] == 'Date/Time':
-            self.cbdefault.setChecked(False)
-            self.cbdatetime.setChecked(True)
-            self.cbcustom.setChecked(False)
-            self.lefilename.setText(dmetadata['File Name'])
-        elif dmetadata['Save File As'] == 'Custom':
-            self.cbdefault.setChecked(False)
-            self.cbdatetime.setChecked(False)
-            self.cbcustom.setChecked(True)
-            #self.lefilename.setReadOnly(False)
-            self.lefilename.setText(dmetadata['File Name'])
-        
-        self.sbacr.setValue(float(dmetadata['Adjacent Channels Ratio']))
-        self.sbreferenceV.setValue(float(dmetadata['Reference Charge']))
-        self.sbcalibrationfactor.setValue(float(dmetadata['Calibration Factor']))
-        self.lefacility.setText(dmetadata['Facility'])
-        self.leinvestigator.setText(dmetadata['Investigator'])
-        self.cbsource.setCurrentText(dmetadata['Source'])
-        self.linacbrand.setCurrentText(dmetadata['Brand'])
-        self.linacparticles.setCurrentText(dmetadata['Particles'])
-        self.linacenergy.setCurrentText(dmetadata['Energy'])
-        self.linacdoserate.setValue(int(dmetadata['Dose Rate']))
-        self.linacgantry.setValue(int(dmetadata['Gantry']))
-        self.linaccollimator.setValue(int(dmetadata['Collimator']))
-        self.linaccouch.setValue(int(dmetadata['Couch']))
-        self.x1coord.setValue(float(dmetadata['Field Size X1']))
-        self.x2coord.setValue(float(dmetadata['Field Size X2']))
-        self.y1coord.setValue(float(dmetadata['Field Size Y1']))
-        self.y2coord.setValue(float(dmetadata['Field Size Y2']))
-        self.sbionchamber.setValue(float(dmetadata['Ion Chamber']))
-        self.linacssdsad.setCurrentText(dmetadata['Setup'])
-        self.linacssdsaddist.setValue(int(dmetadata['Distance']))
-        self.linacmus.setValue(int(dmetadata['MU']))
-        self.transducertype.setCurrentText(dmetadata['Transducer Type'])
-        self.sensortype.setCurrentText(dmetadata['Sensor Type'])
-        self.sensorsize.setCurrentText(dmetadata['Sensor Size'])
-        self.sensorfiberdiam.setCurrentText(dmetadata['Fiber Diameter'])
-        self.sensorfiberlength.setValue(int(dmetadata['Fiber Length']))
-        self.sensorpositionx.setValue(float(dmetadata['Sensor Position X']))
-        self.sensorpositiony.setValue(float(dmetadata['Sensor Position Y']))
-        self.sensorpositionz.setValue(float(dmetadata['Sensor Position Z']))
-        self.referencefiberdiam.setCurrentText(dmetadata['Reference Fiber Diameter'])
-        self.referencefiberlength.setValue(int(dmetadata['Reference Fiber Length']))
-        self.comments.setText(dmetadata['Comments'])
         
 
     def signals(self):
@@ -595,12 +591,19 @@ class Metadata (QMainWindow):
         self.tbcomments.clicked.connect(self.showcommentspage)
         self.tbmainmenumetadata.clicked.connect(self.backtomainmenu)
         self.cbdefault.clicked.connect(self.saveasfilename)
-        self.cbdatetime.clicked.connect(self.saveasfilename)
         self.cbcustom.clicked.connect(self.saveasfilename)
         self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)
         #self.cbbatchfile.clicked.connect(self.batchfile)
         self.cbsymetric.clicked.connect(self.symetry)
         self.y1coord.valueChanged.connect(self.symy1ch)
+        self.pbsendtocontroller.clicked.connect(self.sendtocontroller)
+        
+        
+    def sendtocontroller(self):
+        self.ser = serial.Serial('/dev/ttyS0', 115200, timeout=1)
+        self.ser.write('c%s,%s\n' %(self.sbintegrationtime.value(),
+                                   self.cbopmode.currentText()).encode())
+        self.ser.close()
         
     def symy1ch(self, value):
         if self.cbsymetric.isChecked():
@@ -618,15 +621,6 @@ class Metadata (QMainWindow):
             self.x2coord.setEnabled(True)
             self.y2coord.setEnabled(True)
         
-    def batchfile(self):
-        if self.cbbatchfile.isChecked():
-            self.batchfileline = self.batchfilelinenumb.value()
-            dfbatch = pd.read_csv('batchfile.csv').astype(str)
-            global dmetadata
-            dmetadata = dfbatch.iloc[self.batchfileline,:].to_dict()
-            self.metadatadictogui()
-        
-
 
     def saveoncurrent(self):
         if self.cbsaveoncurrentmeasurements.isChecked():
@@ -639,9 +633,6 @@ class Metadata (QMainWindow):
             if self.cbdefault.isChecked():
                 self.lefilename.setText('default')
                 self.lefilename.setReadOnly(True)
-            elif self.cbdatetime.isChecked():
-                self.lefilename.setText(time.strftime ('%d %b %Y %H:%M:%S'))
-                self.lefilename.setReadOnly(True)
             elif self.cbcustom.isChecked():
                 self.lefilename.setText('')
                 self.lefilename.setReadOnly(False)
@@ -649,8 +640,6 @@ class Metadata (QMainWindow):
     def metadataguitodic(self):
         if self.cbdefault.isChecked():
             dmetadata['Save File As'] =  'Default'
-        if self.cbdatetime.isChecked():
-            dmetadata['Save File As'] =  'Date/Time'
         if self.cbcustom.isChecked():
             dmetadata['Save File As'] = 'Custom'
         dmetadata['File Name'] = self.lefilename.text()
@@ -659,6 +648,8 @@ class Metadata (QMainWindow):
         dmetadata['Calibration Factor'] = str(self.sbcalibrationfactor.value())
         dmetadata['Facility'] = self.lefacility.text()
         dmetadata['Investigator'] = self.leinvestigator.text()
+        dmetadata['Integration Time'] = str(self.sbintegrationtime.value())
+        dmetadata['Operational Mode'] = str(self.cbopmode.currentText())
         dmetadata['Source'] = self.cbsource.currentText()
         dmetadata['Brand'] = self.linacbrand.currentText()
         dmetadata['Particles'] = self.linacparticles.currentText()
@@ -671,7 +662,9 @@ class Metadata (QMainWindow):
         dmetadata['Field Size X2'] =  str(self.x2coord.value())
         dmetadata['Field Size Y1'] =  str(self.y1coord.value())
         dmetadata['Field Size Y2'] =  str(self.y2coord.value())
-        dmetadata['Ion Chamber'] = str(self.sbionchamber.value())
+        dmetadata['IC Measure'] = str(mymainmenu.mymeasure.sbicmeas.value())
+        dmetadata['IC Temperature'] = str(mymainmenu.mymeasure.sbictemp.value())
+        dmetadata['IC Pressure'] = str(mymainmenu.mymeasure.sbicpress.value())
         dmetadata['Setup'] = self.linacssdsad.currentText()
         dmetadata['Distance'] =  str(self.linacssdsaddist.value())
         dmetadata['MU'] = str(self.linacmus.value())
@@ -690,6 +683,7 @@ class Metadata (QMainWindow):
     def backtomainmenu(self):
         self.close()
         self.metadataguitodic()
+        #print(dmetadata)
         
         #If there is already a measument done add the changes to the header file
         #First check if there are measurements
@@ -750,7 +744,7 @@ class Measure(QMainWindow):
         self.plotitemchs = pg.PlotItem()
         self.plotitemchs.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemchs.setLabel('bottom', 'Time', units='s')
-        self.plotitemchs.setLabel('left', 'Charge Acumulated every 300 ms', units='nC')
+        self.plotitemchs.setLabel('left', 'Charge Acumulated every %s ms' %dmetadata['Integration Time'], units='nC')
         self.legend = self.plotitemchs.addLegend()
         self.plotitemPS = pg.PlotItem(title= '<span style="color: #000099">PS</span>')
         self.plotitemPS.showGrid(x = True, y = True, alpha = 0.5)
@@ -807,6 +801,30 @@ class Measure(QMainWindow):
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
         #self.tbtempcorrec.clicked.connect(self.afterstopping)
         self.tbdarkcurrent.clicked.connect(self.rmdarkcurrent)
+        self.sbicmeas.valueChanged.connect(self.updatemetadata)
+        self.sbictemp.valueChanged.connect(self.updatemetadata)
+        self.sbicpress.valueChanged.connect(self.updatemetadata)
+        
+    def updatemetadata(self):
+        #first update dictionary
+        dmetadata['IC Measure'] = str(self.sbicmeas.value())
+        dmetadata['IC Temperature'] = str(self.sbictemp.value())
+        dmetadata['IC Pressure'] = str(self.sbicpress.value())
+        #secondly if measurements have been done and the save on current file
+        #checbox is checked, update the current file
+        if (self.cbsaveincurrent.isChecked() and measurements_done):
+            currentfile = open('rawdata/%s.csv' %dmetadata['File Name'], 'r+')
+            currentlines = currentfile.readlines()
+            currentlines[22] = 'IC Measure,%s\n' %(self.sbicmeas.value())
+            currentlines[23] = 'IC Temperature,%s\n' %(self.sbictemp.value())
+            currentlines[24] = 'IC Pressure,%s\n' %(self.sbicpress.value())
+            currentfile.seek(0)
+            currentfile.truncate()
+            for line in currentlines:
+                currentfile.write(line)
+            currentfile.close()
+            
+            
 
     def rmdarkcurrent(self):
         self.tbstartmeasure.setEnabled(False)
@@ -882,7 +900,6 @@ class Measure(QMainWindow):
             
     def startmeasuringforgood(self):
             
-        self.tbtempcorrec.setEnabled(False)   
         #Refresh screen and reset buttons
         #clearLayout (self.gridmeasure)
         global measurements_done
@@ -945,9 +962,9 @@ class Measure(QMainWindow):
         
         
     def stopmeasurement(self):
+        self.measurethread.stopping()
         #emulator
         self.emulator.stopping()
-        self.measurethread.stopping()
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
         self.tbdarkcurrent.setEnabled(True)
@@ -1057,8 +1074,8 @@ class Measure(QMainWindow):
         #self.vb = self.plotitemchs.vb
         #for lrscene in self.listalrscenes:
             #lrscene.sigMouseMoved.connect(self.mouseMoved)
-        print (self.linearregions[0].scene())
-        print (self.linearregions[0].sceneBoundingRect())
+        #print (self.linearregions[0].scene())
+        #print (self.linearregions[0].sceneBoundingRect())
         #proxy = pg.SignalProxy(self.linearregions[0].scene().sigMouseMoved, rateLimit=60,
         #slot = self.mouseMoved)
         self.linearregions[0].scene().sigMouseMoved.connect(self.mouseMoved)           
@@ -1111,7 +1128,6 @@ class Measure(QMainWindow):
         self.filemeas.write('Relative dose (%%),%.4f\n' %self.totalreldose)
         self.filemeas.write('Absolute dose (cGy),%.4f' %self.totalabsdose)
         self.filemeas.close()
-        self.tbtempcorrec.setEnabled(True)
         #self.afterstopping()
         
 
