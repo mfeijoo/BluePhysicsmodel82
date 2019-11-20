@@ -20,7 +20,7 @@ import serial
 
 
 
-colors = ['#C0392B', '#3498DB']
+colors = ['#01dfa5', '#a5df00']
 
 
 #Read Metadata file and load data in a dictionary
@@ -761,11 +761,11 @@ class Measure(QMainWindow):
         self.plotitemtemp.setLabel('bottom', 'Time', units = 's')
         self.plotitemtemp.setLabel('left', 'Temperature', units = 'C')
         
-        self.curvech0 = self.plotitemchs.plot(pen=pg.mkPen(color='#C0392B', width=2),
+        self.curvech0 = self.plotitemchs.plot(pen=pg.mkPen(color='#ff8000', width=2),
                                               name = 'Ch0',
                                               autoDownsample = False)
                                               
-        self.curvech1 = self.plotitemchs.plot(pen=pg.mkPen(color='#3498DB', width=2),
+        self.curvech1 = self.plotitemchs.plot(pen=pg.mkPen(color='#ff0000', width=2),
                                               name = 'Ch1',
                                               autoDownsample = False)
                 
@@ -1026,10 +1026,10 @@ class Measure(QMainWindow):
         
         #Do the calculatios for the individual beams in the file
         #First we find the times when individual beams start and finish
-        dfchanges =  df.loc[df.ch1diff.abs() > 1, ['ch1diff', 'time']]
+        dfchanges =  df.loc[df.ch1diff.abs() > 1, ['ch1diff', 'time']].copy()
         dfchanges['timediff'] = dfchanges.time.diff()
         dfchanges.fillna(2, inplace=True)
-        dftimes =  dfchanges[dfchanges.timediff > 0.5]
+        dftimes =  dfchanges[dfchanges.timediff > 0.5].copy()
         self.starttimes = dftimes.loc[dftimes.ch1diff > 0, 'time']
         #print (self.starttimes)
         self.finishtimes = dftimes.loc[dftimes.ch1diff < 0, 'time']
@@ -1081,12 +1081,12 @@ class Measure(QMainWindow):
         self.linearregions[0].scene().sigMouseMoved.connect(self.mouseMoved)           
         
         #Put integrals in the graph
-        self.ch0text = pg.TextItem('Charge %s: %.2fnC' %('ch0', self.totalintch0c), color = '#C0392B')
+        self.ch0text = pg.TextItem('Charge %s: %.2fnC' %('ch0', self.totalintch0c), color = '#ff8000')
         self.ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5)
         self.plotitemchs.addItem(self.ch0text)
         
         self.ch1text = pg.TextItem('Charge %s: %.2fnC, Charge~dose: %.2f nC\n'
-                              'Rel.dose: %.2f%%, Abs.dose: %.2fcGy' %('ch1', self.totalintch1c,self.totalchargedose,self.totalreldose, self.totalabsdose), color = '#3498DB')
+                              'Rel.dose: %.2f%%, Abs.dose: %.2fcGy' %('ch1', self.totalintch1c,self.totalchargedose,self.totalreldose, self.totalabsdose), color ='#ff0000')
         self.ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5)
         self.plotitemchs.addItem(self.ch1text)
         
