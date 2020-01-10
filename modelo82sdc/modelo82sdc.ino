@@ -26,7 +26,7 @@ int dcvch0 = 1800;
 int dcvch1 = 2300;
 unsigned long previousMillis = 0;
 unsigned long previousregMillis = 0;
-int resettime = 500;
+int resettime = 70;
 int pinpot = 2;
 int potcount; //pot value in counts from 0 to 1023
 float setvolt = 56;
@@ -181,10 +181,10 @@ void loop() {
       //digitalWrite(pinserial, HIGH);
      
       
-      PSV = PSc * 0.1875 / 1000 * 12.914;
-      minus12V = minus12Vc * 0.1875 / 1000 * 2.2;
-      V5 = cV5 * 0.1875 / 1000;
-      V1058 = cV1058 * 0.1875 / 1000 * 2;
+      //PSV = PSc * 0.1875 / 1000 * 12.914;
+      //minus12V = minus12Vc * 0.1875 / 1000 * 2.2;
+      //V5 = cV5 * 0.1875 / 1000;
+      //V1058 = cV1058 * 0.1875 / 1000 * 2;
 
       //Include last 10 voltage measurements in an array
       //to calculate average later
@@ -203,17 +203,17 @@ void loop() {
       Serial1.print(",");
       Serial1.print(temp, 4);
       Serial1.print(",");
-      Serial1.print(voltch0, 4);
+      Serial1.print(resultch0);
       Serial1.print(",");
-      Serial1.print(voltch1, 4);
+      Serial1.print(resultch1);
       Serial1.print(",");
-      Serial1.print(PSV, 4);
+      Serial1.print(PSc);
       Serial1.print(",");
-      Serial1.print(minus12V, 4);
+      Serial1.print(minus12Vc);
       Serial1.print(",");
-      Serial1.print(V5, 4);
+      Serial1.print(cV5);
       Serial1.print(",");
-      Serial1.println(V1058, 4);
+      Serial1.println(cV1058);
 
       //digitalWrite(pinserial, LOW);
   }
@@ -291,8 +291,8 @@ void ReadChannels(){
       digitalWrite (A5, HIGH);
       SPI.endTransaction();
 
-      voltch0 = -resultch0 * 0.000375 + 12.288;
-      voltch1 = -resultch1 * 0.000375 + 12.288;
+      //voltch0 = -resultch0 * 0.000375 + 12.288;
+      //voltch1 = -resultch1 * 0.000375 + 12.288;
 }
 
 void ReadChannelsOnce(){

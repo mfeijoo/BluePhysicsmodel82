@@ -52,8 +52,8 @@ class EmulatorThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.stop = False
-        self.ser2 = serial.Serial ('/dev/pts/2', 115200, timeout=1)
-        file = open('./rawdata/emulatormeasurements.csv', 'r')
+        self.ser2 = serial.Serial ('/dev/pts/3', 115200, timeout=1)
+        file = open('./rawdata/emulatormeasurementscounts.csv', 'r')
         self.lines =  file.readlines()
         file.close()
         
@@ -84,7 +84,7 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        self.ser = serial.Serial ('/dev/pts/3', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/pts/4', 115200, timeout=1)
         #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
@@ -188,7 +188,7 @@ class MainMenu (QMainWindow):
         self.mymetadata.comments.setText(dmetadata['Comments'])
         
     def setwindowstitle(self):
-        windowstitle = 'Blue Physics Model 8.2.2 File: %s' %(dmetadata['File Name'])
+        windowstitle = 'Blue Physics Model 8.2.5 File: %s' %(dmetadata['File Name'])
         self.setWindowTitle(windowstitle)
         self.mymeasure.setWindowTitle(windowstitle)
         self.mymetadata.setWindowTitle(windowstitle)
@@ -343,7 +343,7 @@ class Analyze (QMainWindow):
         filename = QFileDialog.getOpenFileName(self, 'Open file',
                                                './rawdata')
         filename_only = filename[0].split('/')[-1]
-        self.setWindowTitle('Blue Physics Model 8.2 Analyze File: %s'
+        self.setWindowTitle('Blue Physics Model 8.2.5 Analyze File: %s'
                              %filename_only)
         self.dfa = pd.read_csv(filename[0], skiprows=35, skipfooter=4)
         
@@ -744,7 +744,7 @@ class Measure(QMainWindow):
         self.plotitemchs = pg.PlotItem()
         self.plotitemchs.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemchs.setLabel('bottom', 'Time', units='s')
-        self.plotitemchs.setLabel('left', 'Charge Acumulated every %s ms' %dmetadata['Integration Time'], units='nC')
+        self.plotitemchs.setLabel('left', 'Current', units='A')
         self.legend = self.plotitemchs.addLegend()
         self.plotitemPS = pg.PlotItem(title= '<span style="color: #000099">PS</span>')
         self.plotitemPS.showGrid(x = True, y = True, alpha = 0.5)
@@ -761,11 +761,11 @@ class Measure(QMainWindow):
         self.plotitemtemp.setLabel('bottom', 'Time', units = 's')
         self.plotitemtemp.setLabel('left', 'Temperature', units = 'C')
         
-        self.curvech0 = self.plotitemchs.plot(pen=pg.mkPen(color='#ff8000', width=2),
+        self.curvech0 = self.plotitemchs.plot(pen=pg.mkPen(color='#ff0000', width=2),
                                               name = 'Ch0',
                                               autoDownsample = False)
                                               
-        self.curvech1 = self.plotitemchs.plot(pen=pg.mkPen(color='#ff0000', width=2),
+        self.curvech1 = self.plotitemchs.plot(pen=pg.mkPen(color='#0000ff', width=2),
                                               name = 'Ch1',
                                               autoDownsample = False)
                 
@@ -912,19 +912,25 @@ class Measure(QMainWindow):
         self.times = []
         self.tempmeas = []
         self.ch0meas = []
+        self.ch0meastoplot = []
         self.ch1meas = []
-        self.PSmeas = []
-        self.minus12Vmeas = []
-        self.v5Vmeas = []
-        self.v1058Vmeas = []
+        self.ch1meastoplot = []
+        self.PScmeas = []
+        self.PSVmeastoplot = []
+        self.minus12Vcmeas = []
+        self.minus12Vmeastoplot = []
+        self.cV5meas = []
+        self.V5meastoplot = []
+        self.cV1058meas = []
+        self.V1058meastoplot = []
 
 
         self.tbstopmeasure.setEnabled(True)
         self.tbstartmeasure.setEnabled(False)
         self.tbdarkcurrent.setEnabled(False)
         
-        if dmetadata['Save File As'] == 'Date/Time':
-            dmetadata['File Name'] = time.strftime ('%d %b %Y %H:%M:%S')
+        #if dmetadata['Save File As'] == 'Date/Time':
+            #dmetadata['File Name'] = time.strftime ('%d %b %Y %H:%M:%S')
             
         dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
@@ -942,21 +948,27 @@ class Measure(QMainWindow):
         self.times.append(measurements[0])
         self.tempmeas.append(measurements[1])
         #ch measure in nC multiplying V titmes 1.8 nF as capacitance
-        self.ch0meas.append(measurements[2] * 1.8)
-        self.ch1meas.append(measurements[3] * 1.8)
-        self.PSmeas.append(measurements[4])
-        self.minus12Vmeas.append(measurements[5])
-        self.v5Vmeas.append(measurements[6])
-        self.v1058Vmeas.append(measurements[7])   
+        self.ch0meas.append(measurements[2])
+        self.ch0meastoplot.append((-measurements[2] * 375e-6 + 12.288) * 1.8e-9 / (int(dmetadata['Integration Time']) * 1e-3))
+        self.ch1meas.append(measurements[3])
+        self.ch1meastoplot.append((-measurements[3] * 375e-6 + 12.288) * 1.8e-9 / (int(dmetadata['Integration Time']) * 1e-3))
+        self.PScmeas.append(measurements[4])
+        self.PSVmeastoplot.append(measurements[4] * 0.1875 / 1000 * 12.914)
+        self.minus12Vcmeas.append(measurements[5])
+        self.minus12Vmeastoplot.append(measurements[5] * 0.1875 / 1000 * 2.2)
+        self.cV5meas.append(measurements[6])
+        self.V5meastoplot.append(measurements[6] * 0.1875 / 1000)
+        self.cV1058meas.append(measurements[7])
+        self.V1058meastoplot.append(measurements[7] * 0.1875 / 1000 * 2)  
         
         DS = 1 #Downsampling
         self.curvetemp.setData(self.times[::DS], self.tempmeas[::DS])
-        self.curvech0.setData(self.times[::DS], self.ch0meas[::DS])
-        self.curvech1.setData(self.times[::DS], self.ch1meas[::DS])
-        self.curve5V.setData(self.times[::DS], self.v5Vmeas[::DS])
-        self.curve1058V.setData(self.times[::DS], self.v1058Vmeas[::DS])
-        self.curveminus12V.setData(self.times[::DS], self.minus12Vmeas[::DS])
-        self.curvePS.setData(self.times[::DS], self.PSmeas[::DS])
+        self.curvech0.setData(self.times[::DS], self.ch0meastoplot[::DS])
+        self.curvech1.setData(self.times[::DS], self.ch1meastoplot[::DS])
+        self.curve5V.setData(self.times[::DS], self.V5meastoplot[::DS])
+        self.curve1058V.setData(self.times[::DS], self.V1058meastoplot[::DS])
+        self.curveminus12V.setData(self.times[::DS], self.minus12Vmeastoplot[::DS])
+        self.curvePS.setData(self.times[::DS], self.PSVmeastoplot[::DS])
 
         
         
@@ -976,18 +988,19 @@ class Measure(QMainWindow):
         #Calculate integrals
         #first put in a dataframe
         df = pd.DataFrame({'time': self.times, 'temp':self.tempmeas,
-                           'ch0': self.ch0meas, 'ch1':self.ch1meas,
-                           '5V': self.v5Vmeas, '10.58V':self.v1058Vmeas,
-                           '-12V':self.minus12Vmeas, 'PS':self.PSmeas})
+                           'ch0': self.ch0meastoplot, 'ch1':self.ch1meastoplot,
+                           '5V': self.V5meastoplot, '10.58V':self.V1058meastoplot,
+                           '-12V':self.minus12Vmeastoplot, 'PS':self.PSVmeastoplot})
               
+        #print (df.head())
         #Calculate start and end of radiation
         #Assuming ch1 is where the sensor is and it has the largest differences
         df['ch1diff'] = df.ch1.diff()
         #ts is the time of the first big increase
-        ts = df.loc[df.ch1diff > 1, 'time'].values[0]
+        ts = df.loc[df.ch1diff > 1e-9, 'time'].values[0]
         tsm = ts - 2
         #tf is the time of the last big fall
-        tf = df.loc[df.ch1diff < -1 , 'time'].values[-1]
+        tf = df.loc[df.ch1diff < -1e-9 , 'time'].values[-1]
         tfm = tf + 2
         #print ('Start time: %.2f Finish time: %.2f' %(ts, tf))
         
@@ -1012,21 +1025,24 @@ class Measure(QMainWindow):
         df['ch1zc'] = df.ch1z
         
         #Calculate integrals corrected
-        self.totalintch0c = df.loc[(df.time>tsm)&(df.time<tfm), 'ch0zc'].sum()
-        self.totalintch1c = df.loc[(df.time>tsm)&(df.time<tfm), 'ch1zc'].sum()
+        self.totalintch0nc = df.loc[(df.time>tsm)&(df.time<tfm), 'ch0zc'].sum()*1e9
+        self.totalintch1nc = df.loc[(df.time>tsm)&(df.time<tfm), 'ch1zc'].sum()*1e9
+        #print(self.totalintch0c)
+        #print(self.totalintch1c)
         
         #calculate charge proportional to dose
-        self.totalchargedose = self.totalintch1c - self.totalintch0c
+        self.totalchargedosenc = self.totalintch1nc - self.totalintch0nc
+        #print(self.totalchargedose)
         
         #calculate relative dose
-        self.totalreldose = (self.totalchargedose / float(dmetadata['Reference Charge'])) * 100
+        self.totalreldose = (self.totalchargedosenc / float(dmetadata['Reference Charge'])) * 100
         
         #calculate absolute dose
-        self.totalabsdose = self.totalchargedose * float(dmetadata['Calibration Factor'])
+        self.totalabsdosecG = self.totalchargedosenc * float(dmetadata['Calibration Factor'])
         
         #Do the calculatios for the individual beams in the file
         #First we find the times when individual beams start and finish
-        dfchanges =  df.loc[df.ch1diff.abs() > 1, ['ch1diff', 'time']].copy()
+        dfchanges =  df.loc[df.ch1diff.abs() > 1e-9, ['ch1diff', 'time']].copy()
         dfchanges['timediff'] = dfchanges.time.diff()
         dfchanges.fillna(2, inplace=True)
         dftimes =  dfchanges[dfchanges.timediff > 0.5].copy()
@@ -1036,26 +1052,26 @@ class Measure(QMainWindow):
         #print (self.finishtimes)
         
         #Now we calculate the integrals of each beam and put it in a list
-        self.listaintch0 = []
-        self.listaintch1 = []
+        self.listaintch0nc = []
+        self.listaintch1nc = []
         self.linearregions = []
-        self.listachargedose = []
+        self.listachargedosenc = []
         self.listareldose = []
-        self.listaabsdose = []
+        self.listaabsdosecG = []
         self.listalrscenes = []
         for (nu, (st, ft)) in enumerate(zip(self.starttimes, self.finishtimes)):
                 self.linearregions.append(pg.LinearRegionItem(values=(st-2, ft+2), movable=False))
-                intch0beamn = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch0zc'].sum()
-                intch1beamn = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch1zc'].sum()
-                self.listaintch0.append(intch0beamn)
-                self.listaintch1.append(intch1beamn)
-                chargedosebeamn = intch1beamn - intch0beamn
-                self.listachargedose.append(chargedosebeamn)
-                reldosebeamn = chargedosebeamn / float(dmetadata['Reference Charge']) * 100
+                intch0beamnnc = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch0zc'].sum()*1e9
+                intch1beamnnc = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch1zc'].sum()*1e9
+                self.listaintch0nc.append(intch0beamnnc)
+                self.listaintch1nc.append(intch1beamnnc)
+                chargedosebeamnnc = intch1beamnnc - intch0beamnnc
+                self.listachargedosenc.append(chargedosebeamnnc)
+                reldosebeamn = chargedosebeamnnc / float(dmetadata['Reference Charge']) * 100
                 self.listareldose.append(reldosebeamn)
-                absdosebeamn = chargedosebeamn * float(dmetadata['Calibration Factor'])
-                self.listaabsdose.append(absdosebeamn)
-                #print ('V prop. to dose of beam %s: %.3f V' %(nu+1, doseVbeamn))
+                absdosebeamncG = chargedosebeamnnc * float(dmetadata['Calibration Factor'])
+                self.listaabsdosecG.append(absdosebeamncG)
+                #print ('Charge prop. to dose of beam %s: %.3f nC' %(nu+1, chargedosebeamn))
         
         self.listalrscenes = [lr.scene() for lr in self.linearregions]
         self.plotitemchs.clear()
@@ -1066,28 +1082,24 @@ class Measure(QMainWindow):
         self.legend = self.plotitemchs.addLegend()
         self.plotitemchs.addItem(self.curvech0)
         self.plotitemchs.addItem(self.curvech1)
+        
         for lr in self.linearregions:
                 self.plotitemchs.addItem(lr)
-        #print ('zero ch0zc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0zc'].mean()))
         
-        #signal to capture coordinates of cursor
-        #self.vb = self.plotitemchs.vb
-        #for lrscene in self.listalrscenes:
-            #lrscene.sigMouseMoved.connect(self.mouseMoved)
-        #print (self.linearregions[0].scene())
-        #print (self.linearregions[0].sceneBoundingRect())
-        #proxy = pg.SignalProxy(self.linearregions[0].scene().sigMouseMoved, rateLimit=60,
-        #slot = self.mouseMoved)
-        self.linearregions[0].scene().sigMouseMoved.connect(self.mouseMoved)           
+        self.plotitemchs.scene().sigMouseMoved.connect(self.mouseMoved)          
         
         #Put integrals in the graph
-        self.ch0text = pg.TextItem('Charge %s: %.2fnC' %('ch0', self.totalintch0c), color = '#ff8000')
-        self.ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5)
+        self.ch0text = pg.TextItem('Charge: %.2f nC' %(self.totalintch0nc), color = '#ff0000')
+        self.ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5e-9)
         self.plotitemchs.addItem(self.ch0text)
         
-        self.ch1text = pg.TextItem('Charge %s: %.2fnC, Charge~dose: %.2f nC\n'
-                              'Rel.dose: %.2f%%, Abs.dose: %.2fcGy' %('ch1', self.totalintch1c,self.totalchargedose,self.totalreldose, self.totalabsdose), color ='#ff0000')
-        self.ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5)
+        self.ch1text = pg.TextItem('Charge: %.2f nC Char. prop. to dose: %.2f nC\n'
+                                   'Rel. Dose: %.2f %% Abs. dose: %.2f cGy' %(self.totalintch1nc,
+                                                                              self.totalchargedosenc,
+                                                                              self.totalreldose,
+                                                                              self.totalabsdosecG),
+                                                                              color ='#0000ff')
+        self.ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5e-9)
         self.plotitemchs.addItem(self.ch1text)
         
         #If batch file is selected, load the next line in the file in the dmetadata
@@ -1114,19 +1126,19 @@ class Measure(QMainWindow):
         self.filemeas.write('time,temp,ch0,ch1,PS,-12V,5V,10.58V\n')
         
         for i in range(len(self.times)):
-            self.filemeas.write('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n' %(self.times[i],
-                                                                self.tempmeas[i],
-                                                                self.ch0meas[i],
-                                                                self.ch1meas[i],
-                                                                self.PSmeas[i],
-                                                                self.minus12Vmeas[i],
-                                                                self.v5Vmeas[i],
-                                                                self.v1058Vmeas[i]))
-        self.filemeas.write('Total Charge ch0 (nC),%.4f\n' %self.totalintch0c)
-        self.filemeas.write('Total Charge ch1 (nC),%.4f\n' %self.totalintch1c)
-        self.filemeas.write('Charge proportional to absolute dose (nC),%.4f\n' %self.totalchargedose)
+            self.filemeas.write('%s,%s,%s,%s,%s,%s,%s,%s\n' %(self.times[i],
+                                                              self.tempmeas[i],
+                                                              self.ch0meas[i],
+                                                              self.ch1meas[i],
+                                                              self.PScmeas[i],
+                                                              self.minus12Vcmeas[i],
+                                                              self.cV5meas[i],
+                                                              self.cV1058meas[i]))
+        self.filemeas.write('Total Charge ch0 (nC),%.4f\n' %self.totalintch0nc)
+        self.filemeas.write('Total Charge ch1 (nC),%.4f\n' %self.totalintch1nc)
+        self.filemeas.write('Charge proportional to absolute dose (nC),%.4f\n' %self.totalchargedosenc)
         self.filemeas.write('Relative dose (%%),%.4f\n' %self.totalreldose)
-        self.filemeas.write('Absolute dose (cGy),%.4f' %self.totalabsdose)
+        self.filemeas.write('Absolute dose (cGy),%.4f' %self.totalabsdosecG)
         self.filemeas.close()
         #self.afterstopping()
         
@@ -1137,14 +1149,20 @@ class Measure(QMainWindow):
         if (sum(listaindex)) > 0:
             #find the index where the True value is
             gi = listaindex.index(True)
-            self.ch0text.setText('Charge ch0: %.2fnC' %(self.listaintch0[gi]))
-            self.ch1text.setText('Charge ch1: %.2fnC, Charge~dose: %.2f nC\n'
-                                'Rel.dose: %.2f%%, Abs.dose: %.2fcGy' %(self.listaintch1[gi],self.listachargedose[gi],self.listareldose[gi], self.listaabsdose[gi]))
+            self.ch0text.setText('Charge: %.2fnC' %(self.listaintch0nc[gi]))
+            self.ch1text.setText('Charge: %.2f nC Char. prop. to dose: %.2f nC\n'
+                                 'Rel. Dose: %.2f %% Abs. dose: %.2f cGy' %(self.listaintch1nc[gi],
+                                                                            self.listachargedosenc[gi],
+                                                                            self.listareldose[gi],
+                                                                            self.listaabsdosecG[gi]))
                 
         else:
-            self.ch0text.setText('Charge ch0: %.2fnC' %(self.totalintch0c))
-            self.ch1text.setText('Charge ch1: %.2fnC, Charge~dose: %.2f nC\n'
-                                     'Rel.dose: %.2f%%, Abs.dose: %.2fcGy' %(self.totalintch1c,self.totalchargedose,self.totalreldose, self.totalabsdose))
+            self.ch0text.setText('Charge: %.2fnC' %(self.totalintch0nc))
+            self.ch1text.setText('Charge: %.2f nC Char. prop. to dose: %.2f nC\n'
+                                 'Rel. Dose: %.2f %% Abs. dose: %.2f cGy' %(self.totalintch1nc,
+                                                                            self.totalchargedosenc,
+                                                                            self.totalreldose,
+                                                                            self.totalabsdosecG))
         
 
     
@@ -1154,12 +1172,12 @@ class Measure(QMainWindow):
 
 
 def goodbye():
-    print ('bye')
-    print (dmetadata['Date Time'])
+    #print ('bye')
+    #print (dmetadata['Date Time'])
     metadatafile = open('metadata.csv', 'w')
     for key in metadatakeylist:
         metadatafile.write('%s,%s\n' %(key, dmetadata[key]))
-        print ('%s,%s\n' %(key, dmetadata[key]))
+        #print ('%s,%s\n' %(key, dmetadata[key]))
     metadatafile.close()
     #mymainmenu.mymeasure.measurepowerthread.stopping()
     
