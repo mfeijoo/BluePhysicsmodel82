@@ -216,8 +216,8 @@ void ReadChannels(){
  
  SPI.endTransaction();
 
- voltch0 = -resultch0 * 0.000375 + 12.288;
- voltch1 = -resultch1 * 0.000375 + 12.288;
+ //voltch0 = -resultch0 * 0.000375 + 12.288;
+ //voltch1 = -resultch1 * 0.000375 + 12.288;
 }
 
 void ReadChannelsOnce(){
@@ -248,7 +248,8 @@ void sdc(){
  dcvch1min = 0;
  analogWrite (DAC1, dcvch0);
  analogWrite (DAC0, dcvch1);
- while (millis() - previousMillis < integral){}
+ while (millis() - previousMillis < integral){
+ }
  ReadChannelsOnce();
  Serial.print("dcvch0min:");
  Serial.print(dcvch0min);
@@ -266,7 +267,8 @@ void sdc(){
  Serial.print(dcvch1max);
  Serial.print("voltch1:");
  Serial.println(voltch1);
- while (millis() - previousMillis < integral){}
+ while (millis() - previousMillis < integral){
+ }
  ReadChannelsOnce();
  while (resultch0 < 32742 or resultch0 > 32792){
   if (resultch0 < 32742){
@@ -287,7 +289,7 @@ void sdc(){
   Serial.print("dcvch0max:");
   Serial.print(dcvch0max);
   Serial.print("voltch0:");
-  Serial.println(voltch0);
+  Serial.println(resultch0);
  }
  while (resultch1 < 32742 or resultch1 > 32792){
   if (resultch1 < 32742){
@@ -310,6 +312,6 @@ void sdc(){
   Serial.print("ch1count:");
   Serial.println(resultch1);
  }
- 
+}
  
 

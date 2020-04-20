@@ -542,7 +542,7 @@ class Metadata (QMainWindow):
     
     def __init__(self):
         QMainWindow.__init__(self)
-        loadUi("metadatagui2.ui", self)
+        loadUi("metadatagui.ui", self)
         self.metadatadictogui()
         self.signals()
         #self.cbsaveoncurrentmeasurements.setChecked(True)
@@ -762,7 +762,7 @@ class Measure(QMainWindow):
     
     def __init__(self):
         QMainWindow.__init__(self)
-        loadUi("measureguim82.ui", self)
+        loadUi("measuregui.ui", self)
         
         #Creat the plot for measuring
         #Source https://htmlcolorcodes.com
