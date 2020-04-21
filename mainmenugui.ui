@@ -274,6 +274,9 @@ background-color:rgb(193,210,238);
        </item>
        <item>
         <widget class="QToolButton" name="tbanalyze">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>

@@ -27,6 +27,8 @@ unsigned long previousregMillis = 0;
 int resettime = 500;
 int pinpot = 2;
 int potcount; //pot value in counts from 0 to 1023
+int potlow;
+int pothigh;
 float setvolt = 56;
 //unsigned char i=0;
 //unsigned char j;
@@ -255,67 +257,127 @@ void sdc(){
  while (millis() - previousMillis < integral){
  }
  ReadChannelsOnce();
- Serial.print("dcvch0min:");
+ Serial.print("0,");
+ Serial.print("dcvch0min,");
  Serial.print(dcvch0min);
- Serial.print("dcvch0:");
+ Serial.print(",");
+ Serial.print("dcvch0,");
  Serial.print(dcvch0);
- Serial.print("dcvch0max:");
+ Serial.print(",");
+ Serial.print("dcvch0max,");
  Serial.print(dcvch0max);
- Serial.print("voltch0:");
+ Serial.print(",");
+ Serial.print("voltch0,");
  Serial.println(voltch0);
- Serial.print("dcvch1min:");
+ Serial.print("1,");
+ Serial.print("dcvch1min,");
  Serial.print(dcvch1min);
- Serial.print("dcvch1:");
+ Serial.print(",");
+ Serial.print("dcvch1,");
+ Serial.print(",");
  Serial.print(dcvch1);
- Serial.print("dcvch1max:");
+ Serial.print("dcvch1max,");
+ Serial.print(",");
  Serial.print(dcvch1max);
- Serial.print("voltch1:");
+ Serial.print("voltch1,");
  Serial.println(voltch1);
  while (millis() - previousMillis < integral){
  }
  ReadChannelsOnce();
  while (resultch0 < 32742 or resultch0 > 32792){
   if (resultch0 < 32742){
-    dcvh0min = dcvch0;
+    dcvch0min = dcvch0;
   }
   if (resultch0 > 32792){
-    dcvh0max = cdvch0;
+    dcvch0max = dcvch0;
   }
   dcvch0 = int((dcvch0min + dcvch0max)/2);
   analogWrite(DAC1, dcvch0);
   while (millis() - previousMillis < integral){
   }
   ReadChannelsOnce();
-  Serial.print("dcvch0min:");
+  Serial.print("0,");
+  Serial.print("dcvch0min,");
   Serial.print(dcvch0min);
-  Serial.print("dcvch0:");
+  Serial.print(",");
+  Serial.print("dcvch0,");
   Serial.print(dcvch0);
-  Serial.print("dcvch0max:");
+  Serial.print(",");
+  Serial.print("dcvch0max,");
   Serial.print(dcvch0max);
-  Serial.print("voltch0:");
+  Serial.print(",");
+  Serial.print("voltch0,");
   Serial.println(resultch0);
  }
  while (resultch1 < 32742 or resultch1 > 32792){
   if (resultch1 < 32742){
-    dcvh1min = dcvch1;
+    dcvch1min = dcvch1;
   }
   if (resultch1 > 32792){
-    dcvh1max = cdvch1;
+    dcvch1max = dcvch1;
   }
   dcvch1 = int((dcvch1min + dcvch1max)/2);
   analogWrite(DAC0, dcvch1);
   while (millis() - previousMillis < integral){
   }
   ReadChannelsOnce();
-  Serial.print("dcvch1min:");
+  Serial.print("1");
+  Serial.print("dcvch1min,");
   Serial.print(dcvch1min);
-  Serial.print("dcvch1:");
+  Serial.print(",");
+  Serial.print("dcvch1,");
   Serial.print(dcvch1);
-  Serial.print("dcvch1max:");
+  Serial.print(",");
+  Serial.print("dcvch1max,");
   Serial.print(dcvch1max);
-  Serial.print("ch1count:");
+  Serial.print(",");
+  Serial.print("ch1count,");
   Serial.println(resultch1);
  }
 }
- 
+
+void regulatePS(){
+  potlow = 0;
+  pothigh = 1023;
+  potcount = 512;
+  setpot(potcount);
+  readPS();
+
+  while (PSV > (setvolt + 0.005) or PSV < (setvolt - 0.005)){
+    //voltage is too high
+    if (PSV > (setvolt + 0.005)){
+      pothigh = potcount;
+    }
+    //voltage is too low
+    else if (PSV < (setvolt - 0.005)){
+      potlow = potcount;
+    }
+    potcount = int((potlow + pothigh) / 2);
+    setpot(potcount);
+    readPS();
+    Serial.print("pothigh: ");
+    Serial.println(pothigh);
+    Serial.print("potnow: ");
+    Serial.print(potcount);
+    Serial.print(", PS: ");
+    Serial.println(PSV, 4);
+    Serial.print("potlow: ");
+    Serial.println(potlow);
+  }
+}
+
+
+void setpot(int x){
+  SPI.beginTransaction(SPISettings(50000000, MSBFIRST, SPI_MODE1));
+  digitalWrite (pinpot, LOW);
+  SPI.transfer16( 0x400 | x);
+  digitalWrite (pinpot, HIGH);
+  SPI.endTransaction();
+  delay(300);
+}
+
+void readPS(){
+  PSc = ads.readADC_SingleEnded(0);
+  PSV = PSc * 0.1875 / 1000 * 12.914;
+}
 
