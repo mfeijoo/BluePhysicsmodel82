@@ -51,8 +51,8 @@ class EmulatorThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.stop = False
-        self.ser2 = serial.Serial ('/dev/pts/3', 115200, timeout=1)
-        file = open('./rawdata/emulatormeasurements.csv', 'r')
+        self.ser2 = serial.Serial ('/dev/pts/5', 115200, timeout=1)
+        file = open('./rawdata/emulatormeasurementscounts.csv', 'r')
         self.lines =  file.readlines()
         file.close()
         
@@ -83,8 +83,8 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        #self.ser = serial.Serial ('/dev/pts/4', 115200, timeout=1)
-        self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/pts/6', 115200, timeout=1)
+        #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
         self.wait()
@@ -92,12 +92,12 @@ class MeasureThread(QThread):
     def run(self):
         #One reading to discard garbge
         #comment if emulator
-        reading0 = self.ser.readline().decode().strip().split(',')
+        #reading0 = self.ser.readline().decode().strip().split(',')
 
         #second reading to check starting time
         #comment if emulator
-        reading1 = self.ser.readline().decode().strip().split(',')
-        tstart = int(reading1[0])
+        #reading1 = self.ser.readline().decode().strip().split(',')
+        #tstart = int(reading1[0])
         
         while True:
             
@@ -108,8 +108,8 @@ class MeasureThread(QThread):
                 reading = self.ser.readline().decode().strip().split(',')
                 #print (reading)
                 #only if emulator
-                #listatosend = [float(i) for i in reading]
-                listatosend = [(int(reading[0])-tstart)/1000] + [float(reading[1])] + [int(i) for i  in reading[2:]]
+                listatosend = [float(i) for i in reading]
+                #listatosend = [(int(reading[0])-tstart)/1000] + [float(reading[1])] + [int(i) for i  in reading[2:]]
                 #print (listatosend)
                 self.info.emit(listatosend)
             except:
@@ -739,8 +739,8 @@ class Measure(QMainWindow):
         self.plotitemPS.setLabel('bottom', 'Time', units ='s')
         self.plotitemPS.setLabel('left', 'Voltage', units = 'V')
         self.plotitem5v = pg.PlotItem(title ='<span style="color: #009999">5V</span> ')
-        self.plotitemminus12v = pg.PlotItem(title = '<span style="color: #990000">-12V</span>')
-        self.plotitemvref = pg.PlotItem(title = '& <span style="color: #990000">Vref</span>')
+        self.plotitemminus12v = pg.PlotItem(title = '<span style="color: #990099">-12V</span>')
+        self.plotitemvref = pg.PlotItem(title = '<span style="color: #990000">Vref</span>')
         self.plotitem5v.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitem5v.setLabel('bottom', 'Time', units = 's')
         self.plotitem5v.setLabel('left', 'Voltage', units = 'V')
@@ -805,9 +805,9 @@ class Measure(QMainWindow):
         elif index == 2:
             self.graphicsView.addItem(self.plotitemPS, row=1, col=0)
         elif index == 3:
-            self.graphicsView.addItem(self.plotitem5V, row=1, col=0)
+            self.graphicsView.addItem(self.plotitem5v, row=1, col=0)
         elif index == 4:
-            self.graphicsView.addItem(self.plotitemminus12V, row = 1, col = 0)
+            self.graphicsView.addItem(self.plotitemminus12v, row = 1, col = 0)
         elif index == 5:
             self.graphicsView.addItem(self.plotitemvref, row = 1, col = 0)
     
@@ -858,7 +858,6 @@ class Measure(QMainWindow):
             
     def startmeasuringforgood(self):
             
-        self.tbtempcorrec.setEnabled(False)   
         #Refresh screen and reset buttons
         #clearLayout (self.gridmeasure)
         global measurements_done
@@ -880,6 +879,7 @@ class Measure(QMainWindow):
 
         self.tbstopmeasure.setEnabled(True)
         self.tbstartmeasure.setEnabled(False)
+        self.tbsdc.setEnabled(False)
         
         if dmetadata['Save File As'] == 'Date/Time':
             dmetadata['File Name'] = time.strftime ('%d %b %Y %H:%M:%S')
@@ -887,8 +887,8 @@ class Measure(QMainWindow):
         dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
         #only if emulator
-        #self.emulator = EmulatorThread()
-        #self.emulator.start()
+        self.emulator = EmulatorThread()
+        self.emulator.start()
         
         self.measurethread = MeasureThread()
         self.measurethread.start()
@@ -910,7 +910,7 @@ class Measure(QMainWindow):
         self.curvetemp.setData(self.times[::DS], self.tempmeas[::DS])
         self.curvech0.setData(self.times[::DS], self.ch0meas[::DS])
         self.curvech1.setData(self.times[::DS], self.ch1meas[::DS])
-        self.curve5V.setData(self.times[::DS], self.v5Vmeas[::DS])
+        self.curve5v.setData(self.times[::DS], self.v5Vmeas[::DS])
         self.curvevref.setData(self.times[::DS], self.v1058Vmeas[::DS])
         self.curveminus12v.setData(self.times[::DS], self.minus12Vmeas[::DS])
         self.curvePS.setData(self.times[::DS], self.PSmeas[::DS])
@@ -920,10 +920,11 @@ class Measure(QMainWindow):
         
     def stopmeasurement(self):
         #emulator
-        #self.emulator.stopping()
+        self.emulator.stopping()
         self.measurethread.stopping()
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
+        self.tbsdc.setEnabled(True)
         
         #Global flag idicating measurements are done
         global measurements_done
@@ -948,7 +949,6 @@ class Measure(QMainWindow):
                                                                 self.v5Vmeas[i],
                                                                 self.v1058Vmeas[i]))
         self.filemeas.close()
-        self.tbtempcorrec.setEnabled(True)
         self.afterstopping()
         
         
@@ -963,74 +963,79 @@ class Measure(QMainWindow):
         #Calculate start and end of radiation
         #Assuming ch1 is where the sensor is and it has the largest differences
         df['ch1diff'] = df.ch1.diff()
-        ts = df.loc[df.ch1diff == df.ch1diff.max(), 'time'].item()
-        tf = df.loc[df.ch1diff == df.ch1diff.min(), 'time'].item()
-        print ('Start time: %.2f Finish time: %.2f' %(ts, tf))
-        
-        #calculate correction to temperature
-        df['ch0tc'] = df.ch0
-        df['ch1tc'] = df.ch1
-        #if self.tbtempcorrec.isChecked():
-            #df.loc[df.ch0<6.25, 'ch0tc'] = df.ch0 - (-0.012 * df.ch0 + 0.075) * (df.temp - 26.8)
-            #df.loc[df.ch1<6.25, 'ch1tc'] = df.ch1 - (-0.012 * df.ch1 + 0.075) * (df.temp - 26.8)
-        
-        
+        dfchanges =  df.loc[df.ch1diff.abs() > 0.5, :].copy()
+        #print (dfchanges.head())
+        dfchanges['timediff'] = dfchanges.time.diff()
+        dfchanges.fillna(1, inplace=True)
+        dftimes =  dfchanges[dfchanges.timediff > 0.5].copy()
+        #print (dftimes.head())
+        starttimes = dftimes.loc[dftimes.ch1diff > 0, 'time'].values
+        print (starttimes)
+        finishtimes = dftimes.loc[dftimes.ch1diff < 0, 'time'].values
+        #print (finishtimes)
+        ts = starttimes[0]
+        tf = finishtimes[-1]
+        #print ('Start time: %.2f Finish time: %.2f' %(ts, tf))
+  
         #calculate the zeros
-        print ('mean zero ch0: %.3f' %(df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()))
-        df['ch0z'] = df.ch0tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0tc'].mean()
-        df['ch1z'] = df.ch1tc - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch1tc'].mean()
+        #print ('mean zero ch0: %.3f' %(df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0'].mean()))
+        df['ch0z'] = df.ch0 - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch0'].mean()
+        df['ch1z'] = df.ch1 - df.loc[(df.time<(ts-2))|(df.time>(tf+2)), 'ch1'].mean()
         
         #calculate integrals not corrected
-        intch0 = df.loc[:, 'ch0z'].sum()
-        intch1 = df.loc[:, 'ch1z'].sum()
-        
-        #Calculate ch0 corrected
-        df['ch0zc'] = df.ch0z * float(dmetadata['Calibration Factor'])
-        df['ch1zc'] = df.ch1z
-        
-        #Calculate integrals corrected
-        intch0c = df.loc[:, 'ch0zc'].sum()
-        intch1c = df.loc[:, 'ch1zc'].sum()
-        
-        #calculate absolute dose
-        absdose = intch1c - intch0c
-        
-        #calculate relative dose
-        reldose = (absdose / float(dmetadata['Reference diff Voltage'])) * 100
+        self.intch0 = df.loc[:, 'ch0z'].sum()
+        self.intch1 = df.loc[:, 'ch1z'].sum()
         
         self.plotitemchs.clear()
         #draw the new plots with zeros corrected
-        self.curvech0.setData(df.time, df.ch0zc)
-        self.curvech1.setData(df.time, df.ch1zc)
+        self.curvech0.setData(df.time, df.ch0z)
+        self.curvech1.setData(df.time, df.ch1z)
         self.legend.scene().removeItem(self.legend)
         self.legend = self.plotitemchs.addLegend()
         self.plotitemchs.addItem(self.curvech0)
         self.plotitemchs.addItem(self.curvech1)
-        print ('zero ch0zc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0zc'].mean()))
+        #print ('zero ch0zc: %.3f' %(df.loc[(df.time<ts)|(df.time>tf), 'ch0zc'].mean()))
         
-        
-        #Put integrals in the graph
-        ch0text = pg.TextItem('Int %s: %.2fV' %('ch0', intch0), color = '#C0392B')
-        ch0text.setPos((tf+ts)/2 - 2, df.ch0z.max()+ 0.5)
-        self.plotitemchs.addItem(ch0text)
-        
-        ch1text = pg.TextItem('Int %s: %.2f, Abs. Dose: %.2f, Rel. Dose: %.2f' %('ch1', intch1, absdose, reldose), color = '#3498DB')
-        ch1text.setPos((tf+ts)/2 - 5, df.ch1z.max()+ 0.5)
-        self.plotitemchs.addItem(ch1text)
-        
-        #If batch file is selected, load the next line in the file in the dmetadata
-        #and in metadata gui
-        """if mymainmenu.mymetadata.cbbatchfile.isChecked():
-            self.batchlinenumbnow = mymainmenu.mymetadata.batchfilelinenumb.value()
-            dfbatch = pd.read_csv('batchfile.csv').astype(str)
-            self.batchlinenumbnext = self.batchlinenumbnow + 1
-            if self.batchlinenumbnext < len(dfbatch):
-                mymainmenu.mymetadata.batchfilelinenumb.setValue(self.batchlinenumbnext)
-                global dmetadata
-                dmetadata = dfbatch.iloc[self.batchlinenumbnext,:].to_dict()
-                mymainmenu.mymetadata.metadatadictogui()"""
+        self.linearregions = []
+        for (st, ft) in zip(starttimes, finishtimes):
+            self.linearregions.append(pg.LinearRegionItem(values=(st-2, ft+2), movable=False))
+            
+        for lr in self.linearregions:
+            self.plotitemchs.addItem(lr)
                 
-        #Now ready for the next measurement
+        self.listaintch0 = []
+        self.listaintch1 = []
+        for (st, ft) in zip(starttimes, finishtimes):
+            intch0beamn = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch0z'].sum()
+            intch1beamn = df.loc[(df.time>(st-2))&(df.time<(ft+2)), 'ch1z'].sum()
+            self.listaintch0.append(intch0beamn)
+            self.listaintch1.append(intch1beamn)
+            
+        self.listadoses = [s - c * float(dmetadata['Neighbour Channel Ratio']) for (c, s) in zip(self.listaintch0, self.listaintch1)]
+        self.listadosesrel = [d/float(dmetadata['Reference Charge'])*100 for d in self.listadoses]
+        
+        self.ch0text = pg.TextItem('Tot. int. ch0: %.2f V' %(self.intch0), color = colors[0])
+        self.ch0text.setPos((df.time.max())/2, df.ch0z.max())
+        self.ch1text = pg.TextItem('Tot. int. ch1: %.2f V' %(self.intch1), color = colors[1])
+        self.ch1text.setPos((df.time.max())/2, df.ch1z.max())
+        self.plotitemchs.addItem(self.ch0text)
+        self.plotitemchs.addItem(self.ch1text)
+
+        self.plotitemchs.scene().sigMouseMoved.connect(self.mouseMoved)
+
+
+    def mouseMoved(self, evt):
+        listaindex = [lr.sceneBoundingRect().contains(evt) for lr in self.linearregions]
+        if (sum(listaindex)) > 0:
+            #find the index where the True value is
+            gi = listaindex.index(True)
+            self.ch0text.setText('IntCh0: %.2f V' %(self.listaintch0[gi]))
+            self.ch1text.setText('IntCh1: %.2f V\nVDose: %.2f V\n%%Dose: %.2f %%' %(self.listaintch1[gi],
+                                                                                    self.listadoses[gi],
+                                                                                    self.listadosesrel[gi]))
+        else:
+            self.ch0text.setText('Tot. Int. ch0: %.2f V' %(self.intch0))
+            self.ch1text.setText('Tot. Int. ch1: %.2f V' %(self.intch1))
 
 
     def backmainmenu(self):
