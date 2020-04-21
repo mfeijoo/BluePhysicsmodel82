@@ -779,12 +779,27 @@ class Measure(QMainWindow):
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
         self.tbsdc.clicked.connect(self.sdc)
         
+    def regulate(self):
+        self.tbstartmeasure.setEnabled(False)
+        device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
+        self.serreg = serial.Serial(device, 115200, timeout=1)
+        self.serreg.write('r'.encode())
+        print ('r'.encode())
+        for i in range(10):
+            line = self.serreg.readline().decode().strip()
+            print (line)
+        while len(line) == 9:
+            line = self.serreg.readline().decode().strip()
+            print (line)
+        self.serreg.close()
+        self.tbstartmeasure.setEnabled(True)
+        
     def sdc(self):
         self.tbstartmeasure.setEnabled(False)
         device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
         self.ser = serial.Serial(device, 115200, timeout = 1)
         self.ser.write('s'.encode())
-        for i in range (20):
+        for i in range (10):
             line = self.ser.readline().decode().strip().split(',')
             print(line)
         while len(line) == 9:
@@ -880,6 +895,7 @@ class Measure(QMainWindow):
         self.tbstopmeasure.setEnabled(True)
         self.tbstartmeasure.setEnabled(False)
         self.tbsdc.setEnabled(False)
+        self.tbregulate.setEnabled(False)
         
         if dmetadata['Save File As'] == 'Date/Time':
             dmetadata['File Name'] = time.strftime ('%d %b %Y %H:%M:%S')
@@ -925,6 +941,7 @@ class Measure(QMainWindow):
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
         self.tbsdc.setEnabled(True)
+        self.tbregulate.setEnabled(True)
         
         #Global flag idicating measurements are done
         global measurements_done

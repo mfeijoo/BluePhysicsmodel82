@@ -184,6 +184,10 @@ void loop() {
  if (Serial1.available() > 0){
   char inChar = (char)Serial1.read();
 
+  if (inChar == 'r'){
+    regulatePS();
+  }
+  
   if (inChar == 's'){
    sdc();
   }
@@ -355,13 +359,13 @@ void regulatePS(){
     potcount = int((potlow + pothigh) / 2);
     setpot(potcount);
     readPS();
-    Serial.print("pothigh: ");
-    Serial.println(pothigh);
-    Serial.print("potnow: ");
+    Serial.print("regulate,pothigh,");
+    Serial.print(pothigh);
+    Serial.print(",potnow,");
     Serial.print(potcount);
-    Serial.print(", PS: ");
-    Serial.println(PSV, 4);
-    Serial.print("potlow: ");
+    Serial.print(",PS,");
+    Serial.print(PSV, 4);
+    Serial.print(",potlow,");
     Serial.println(potlow);
   }
 }
