@@ -20,7 +20,7 @@ float PSV;
 float minus12V;
 float V5;
 float V1058;
-int integral = 150;
+int integral = 300;
 int regtime = 233;
 unsigned long previousMillis = 0;
 unsigned long previousregMillis = 0;
@@ -181,6 +181,10 @@ void loop() {
 
  if (Serial1.available() > 0){
   char inChar = (char)Serial1.read();
+
+  if (inChar == 's'){
+   sdc();
+  }
   
   if (inChar == 'c'){
    String intts = Serial1.readStringUntil(',');

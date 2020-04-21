@@ -327,21 +327,21 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                </font>
               </property>
               <property name="text">
-               <string>Adjacent Channels Ratio (ch1/ch0:)</string>
+               <string>Neighbour Channels Ratio (ch1/ch0:)</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sbacr">
+             <widget class="QDoubleSpinBox" name="sbncr">
               <property name="minimumSize">
                <size>
-                <width>125</width>
+                <width>100</width>
                 <height>28</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>91</width>
+                <width>100</width>
                 <height>28</height>
                </size>
               </property>
@@ -398,7 +398,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sbreferenceV">
+             <widget class="QDoubleSpinBox" name="sbreferencecharge">
               <property name="minimumSize">
                <size>
                 <width>125</width>
@@ -668,8 +668,8 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
        <widget class="QFrame" name="frame_6">
         <property name="geometry">
          <rect>
-          <x>370</x>
-          <y>240</y>
+          <x>10</x>
+          <y>200</y>
           <width>214</width>
           <height>80</height>
          </rect>
@@ -747,7 +747,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
             </font>
            </property>
            <property name="text">
-            <string>MU's/minutes</string>
+            <string>MU</string>
            </property>
           </widget>
          </item>
@@ -1103,7 +1103,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>240</y>
+          <y>290</y>
           <width>300</width>
           <height>114</height>
          </rect>
@@ -1120,18 +1120,6 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_13">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Gantry (degrees)</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="linacgantry">
            <property name="minimumSize">
@@ -1165,6 +1153,30 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
            </property>
            <property name="text">
             <string>Collimator (degrees/size)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="linaccouch">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>28</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>28</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="maximum">
+            <number>359</number>
            </property>
           </widget>
          </item>
@@ -1204,27 +1216,15 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="linaccouch">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>28</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>28</height>
-            </size>
-           </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_13">
            <property name="font">
             <font>
              <pointsize>12</pointsize>
             </font>
            </property>
-           <property name="maximum">
-            <number>359</number>
+           <property name="text">
+            <string>Gantry (degrees)</string>
            </property>
           </widget>
          </item>
@@ -1756,7 +1756,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="label_33">
              <property name="font">
               <font>
@@ -1768,7 +1768,7 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
+           <item row="2" column="1">
             <widget class="QSpinBox" name="sensorfiberlength">
              <property name="minimumSize">
               <size>
@@ -1821,18 +1821,6 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
                <string>Sphere</string>
               </property>
              </item>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_35">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Fiber diameter (mm)</string>
-             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -1893,47 +1881,6 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QComboBox" name="sensorfiberdiam">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>28</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>28</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>0.75</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>0.50</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>0.25</string>
-              </property>
-             </item>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
@@ -1959,8 +1906,8 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
           <widget class="QSpinBox" name="referencefiberlength">
            <property name="geometry">
             <rect>
-             <x>160</x>
-             <y>90</y>
+             <x>140</x>
+             <y>30</y>
              <width>141</width>
              <height>28</height>
             </rect>
@@ -1989,8 +1936,8 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
           <widget class="QLabel" name="label_37">
            <property name="geometry">
             <rect>
-             <x>20</x>
-             <y>100</y>
+             <x>10</x>
+             <y>40</y>
              <width>97</width>
              <height>18</height>
             </rect>
@@ -2002,71 +1949,6 @@ background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0
            </property>
            <property name="text">
             <string>Fiber length (cm)</string>
-           </property>
-          </widget>
-          <widget class="QComboBox" name="referencefiberdiam">
-           <property name="geometry">
-            <rect>
-             <x>160</x>
-             <y>40</y>
-             <width>141</width>
-             <height>28</height>
-            </rect>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>28</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>28</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <item>
-            <property name="text">
-             <string>1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.75</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.50</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.25</string>
-            </property>
-           </item>
-          </widget>
-          <widget class="QLabel" name="label_36">
-           <property name="geometry">
-            <rect>
-             <x>20</x>
-             <y>40</y>
-             <width>118</width>
-             <height>18</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Fiber diameter (mm)</string>
            </property>
           </widget>
          </widget>

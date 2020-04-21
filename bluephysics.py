@@ -17,6 +17,7 @@ from PyQt5.QtCore import QTimer, QThread, pyqtSignal
 import atexit
 
 import serial
+import serial.tools.list_ports
 
 
 
@@ -24,24 +25,11 @@ colors = ['#C0392B', '#3498DB']
 
 
 #Read Metadata file and load data in a dictionary
-metadatakeylist = ['Date Time','Save File As', 'File Name',
-                   'Calibration Factor', 'Reference diff Voltage',
-                   'Facility', 'Investigator', 'Source','Brand',
-                   'Particles', 'Energy', 'Dose Rate', 'Gantry',
-                   'Collimator', 'Couch', 'Field Size X1',
-                   'Field Size X2', 'Field Size Y1', 'Field Size Y2',
-                   'Ion Chamber', 'Setup', 'Distance', 'MU', 'PS',
-                   'Transducer Type', 'Sensor Type',
-                   'Sensor Size', 'Fiber Diameter', 'Fiber Length',
-                   'Sensor Position X', 'Sensor Position Y',
-                   'Sensor Position Z','Reference Fiber Diameter',
-                   'Reference Fiber Length', 'Comments']
-
 metadatafile = open('metadata.csv', 'r')
 listmetadata = [pair.split(',') for pair in metadatafile.readlines()]
 metadatafile.close()
-global dmetadata
 dmetadata = {key:value.strip() for [key,value] in listmetadata}
+metadatakeylist = [key for [key, value] in listmetadata]
 
 
 #Global flag to indicate if there are measurements done
@@ -121,7 +109,7 @@ class MeasureThread(QThread):
                 #print (reading)
                 #only if emulator
                 #listatosend = [float(i) for i in reading]
-                listatosend = [(int(reading[0])-tstart)/1000] + [float(i) for i  in reading[1:]]
+                listatosend = [(int(reading[0])-tstart)/1000] + [float(reading[1])] + [int(i) for i  in reading[2:]]
                 #print (listatosend)
                 self.info.emit(listatosend)
             except:
@@ -551,25 +539,20 @@ class Metadata (QMainWindow):
         
         if dmetadata['Save File As'] == 'Default':
             self.cbdefault.setChecked(True)
-            self.cbdatetime.setChecked(False)
             self.cbcustom.setChecked(False)
             self.lefilename.setText('default')
-        elif dmetadata['Save File As'] == 'Date/Time':
-            self.cbdefault.setChecked(False)
-            self.cbdatetime.setChecked(True)
-            self.cbcustom.setChecked(False)
-            self.lefilename.setText(dmetadata['File Name'])
         elif dmetadata['Save File As'] == 'Custom':
             self.cbdefault.setChecked(False)
-            self.cbdatetime.setChecked(False)
             self.cbcustom.setChecked(True)
-            #self.lefilename.setReadOnly(False)
             self.lefilename.setText(dmetadata['File Name'])
         
-        self.sbcalibfactor.setValue(float(dmetadata['Calibration Factor']))
-        self.sbreferencedose.setValue(float(dmetadata['Reference diff Voltage']))
+        self.sbncr.setValue(float(dmetadata['Neighbour Channel Ratio']))
+        self.sbreferencecharge.setValue(float(dmetadata['Reference Charge']))
+        self.sbcalibrationfactor.setValue(float(dmetadata['Calibration Factor']))
         self.lefacility.setText(dmetadata['Facility'])
         self.leinvestigator.setText(dmetadata['Investigator'])
+        self.sbintegrationtime.setValue(int(dmetadata['Integration Time']))
+        self.cbopmode.setCurrentText(dmetadata['Operational Mode'])
         self.cbsource.setCurrentText(dmetadata['Source'])
         self.linacbrand.setCurrentText(dmetadata['Brand'])
         self.linacparticles.setCurrentText(dmetadata['Particles'])
@@ -582,19 +565,16 @@ class Metadata (QMainWindow):
         self.x2coord.setValue(float(dmetadata['Field Size X2']))
         self.y1coord.setValue(float(dmetadata['Field Size Y1']))
         self.y2coord.setValue(float(dmetadata['Field Size Y2']))
-        self.sbionchamber.setValue(float(dmetadata['Ion Chamber']))
         self.linacssdsad.setCurrentText(dmetadata['Setup'])
         self.linacssdsaddist.setValue(int(dmetadata['Distance']))
         self.linacmus.setValue(int(dmetadata['MU']))
         self.transducertype.setCurrentText(dmetadata['Transducer Type'])
         self.sensortype.setCurrentText(dmetadata['Sensor Type'])
         self.sensorsize.setCurrentText(dmetadata['Sensor Size'])
-        self.sensorfiberdiam.setCurrentText(dmetadata['Fiber Diameter'])
         self.sensorfiberlength.setValue(int(dmetadata['Fiber Length']))
         self.sensorpositionx.setValue(float(dmetadata['Sensor Position X']))
         self.sensorpositiony.setValue(float(dmetadata['Sensor Position Y']))
         self.sensorpositionz.setValue(float(dmetadata['Sensor Position Z']))
-        self.referencefiberdiam.setCurrentText(dmetadata['Reference Fiber Diameter'])
         self.referencefiberlength.setValue(int(dmetadata['Reference Fiber Length']))
         self.comments.setText(dmetadata['Comments'])
         
@@ -606,10 +586,8 @@ class Metadata (QMainWindow):
         self.tbcomments.clicked.connect(self.showcommentspage)
         self.tbmainmenumetadata.clicked.connect(self.backtomainmenu)
         self.cbdefault.clicked.connect(self.saveasfilename)
-        self.cbdatetime.clicked.connect(self.saveasfilename)
         self.cbcustom.clicked.connect(self.saveasfilename)
         self.cbsaveoncurrentmeasurements.clicked.connect(self.saveoncurrent)
-        self.cbbatchfile.clicked.connect(self.batchfile)
         self.cbsymetric.clicked.connect(self.symetry)
         self.y1coord.valueChanged.connect(self.symy1ch)
         self.pbsendtocontroller.clicked.connect(self.sendtocontroller)
@@ -638,15 +616,6 @@ class Metadata (QMainWindow):
             self.x2coord.setEnabled(True)
             self.y2coord.setEnabled(True)
         
-    def batchfile(self):
-        if self.cbbatchfile.isChecked():
-            self.batchfileline = self.batchfilelinenumb.value()
-            dfbatch = pd.read_csv('batchfile.csv').astype(str)
-            global dmetadata
-            dmetadata = dfbatch.iloc[self.batchfileline,:].to_dict()
-            self.metadatadictogui()
-        
-
 
     def saveoncurrent(self):
         if self.cbsaveoncurrentmeasurements.isChecked():
@@ -659,9 +628,6 @@ class Metadata (QMainWindow):
             if self.cbdefault.isChecked():
                 self.lefilename.setText('default')
                 self.lefilename.setReadOnly(True)
-            elif self.cbdatetime.isChecked():
-                self.lefilename.setText(time.strftime ('%d %b %Y %H:%M:%S'))
-                self.lefilename.setReadOnly(True)
             elif self.cbcustom.isChecked():
                 self.lefilename.setText('')
                 self.lefilename.setReadOnly(False)
@@ -669,15 +635,15 @@ class Metadata (QMainWindow):
     def metadataguitodic(self):
         if self.cbdefault.isChecked():
             dmetadata['Save File As'] =  'Default'
-        if self.cbdatetime.isChecked():
-            dmetadata['Save File As'] =  'Date/Time'
         if self.cbcustom.isChecked():
             dmetadata['Save File As'] = 'Custom'
         dmetadata['File Name'] = self.lefilename.text()
-        dmetadata['Calibration Factor'] = str(self.sbcalibfactor.value())
-        dmetadata['Reference diff Voltage'] = str(self.sbreferencedose.value())
+        dmetadata['Neightbour Channel Ratio'] = str(self.sbncr.value())
+        dmetadata['Calibration Factor'] = str(self.sbcalibrationfactor.value())
         dmetadata['Facility'] = self.lefacility.text()
         dmetadata['Investigator'] = self.leinvestigator.text()
+        dmetadata['Integration Time'] = str(self.sbintegrationtime.value())
+        dmetadata['Operational Mode'] = self.cbopmode.currentText()
         dmetadata['Source'] = self.cbsource.currentText()
         dmetadata['Brand'] = self.linacbrand.currentText()
         dmetadata['Particles'] = self.linacparticles.currentText()
@@ -690,19 +656,16 @@ class Metadata (QMainWindow):
         dmetadata['Field Size X2'] =  str(self.x2coord.value())
         dmetadata['Field Size Y1'] =  str(self.y1coord.value())
         dmetadata['Field Size Y2'] =  str(self.y2coord.value())
-        dmetadata['Ion Chamber'] = str(self.sbionchamber.value())
         dmetadata['Setup'] = self.linacssdsad.currentText()
         dmetadata['Distance'] =  str(self.linacssdsaddist.value())
         dmetadata['MU'] = str(self.linacmus.value())
         dmetadata['Transducer Type'] =  self.transducertype.currentText()
         dmetadata['Sensor Type'] = self.sensortype.currentText()
         dmetadata['Sensor Size'] = self.sensorsize.currentText()
-        dmetadata['Fiber Diameter'] =  self.sensorfiberdiam.currentText()
         dmetadata['Fiber Length'] =  str(self.sensorfiberlength.value())
         dmetadata['Sensor Position X'] = str(self.sensorpositionx.value())
         dmetadata['Sensor Position Y'] = str(self.sensorpositiony.value())
         dmetadata['Sensor Position Z'] = str(self.sensorpositionz.value())
-        dmetadata['Reference Fiber Diameter'] = self.referencefiberdiam.currentText()
         dmetadata['Reference Fiber Length'] = str(self.referencefiberlength.value())
         dmetadata['Comments'] =  self.comments.toPlainText()
         
@@ -775,41 +738,31 @@ class Measure(QMainWindow):
         self.plotitemPS.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemPS.setLabel('bottom', 'Time', units ='s')
         self.plotitemPS.setLabel('left', 'Voltage', units = 'V')
-        self.plotitemvoltages = pg.PlotItem(title ='<span style="color: #990099">-12V</span> '
-                                                    '& <span style="color: #009999">5V</span> '
-                                                    '& <span style="color: #990000">10.58V</span>')
-        self.plotitemvoltages.showGrid(x = True, y = True, alpha = 0.5)
-        self.plotitemvoltages.setLabel('bottom', 'Time', units = 's')
-        self.plotitemvoltages.setLabel('left', 'Voltage', units = 'V')
+        self.plotitem5v = pg.PlotItem(title ='<span style="color: #009999">5V</span> ')
+        self.plotitemminus12v = pg.PlotItem(title = '<span style="color: #990000">-12V</span>')
+        self.plotitemvref = pg.PlotItem(title = '& <span style="color: #990000">Vref</span>')
+        self.plotitem5v.showGrid(x = True, y = True, alpha = 0.5)
+        self.plotitem5v.setLabel('bottom', 'Time', units = 's')
+        self.plotitem5v.setLabel('left', 'Voltage', units = 'V')
+        self.plotitemminus12v.showGrid(x = True, y = True, alpha = 0.5)
+        self.plotitemminus12v.setLabel('bottom', 'Time', units = 's')
+        self.plotitemminus12v.setLabel('left', 'Voltage', units = 'V')
+        self.plotitemvref.showGrid(x = True, y = True, alpha = 0.5)
+        self.plotitemvref.setLabel('bottom', 'Time', units = 's')
+        self.plotitemvref.setLabel('left', 'Voltage', units = 'V')
         self.plotitemtemp = pg.PlotItem(title = '<span style="color: #002525">Temp C')
         self.plotitemtemp.showGrid(x = True, y = True, alpha = 0.5)
         self.plotitemtemp.setLabel('bottom', 'Time', units = 's')
-        self.plotitemtemp.setLabel('left', 'Temperature', units = 'C')
-        
+        self.plotitemtemp.setLabel('left', 'Temperature', units = 'C')        
         self.curvech0 = self.plotitemchs.plot(pen=pg.mkPen(color='#C0392B', width=2),
-                                              name = 'Ch0',
-                                              autoDownsample = False)
-                                              
+                                              name = 'Ch0')                                              
         self.curvech1 = self.plotitemchs.plot(pen=pg.mkPen(color='#3498DB', width=2),
-                                              name = 'Ch1',
-                                              autoDownsample = False)
-                
-        self.curvePS = self.plotitemPS.plot(pen=pg.mkPen(color='#000099', width=2),
-                                                   autoDownsample = False)
-
-        self.curve5V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#009999',
-                                                                          width=2),
-                                                   autoDownsample = False)
-        self.curveminus12V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#990099',
-                                                                 width=2),
-                                                  autoDownsample = False)
-        self.curve1058V = self.plotitemvoltages.plot(pen=pg.mkPen(color='#990000',
-                                                                             width=2),
-                                                   autoDownsample = False)
-
-
-        self.curvetemp = self.plotitemtemp.plot(pen=pg.mkPen(color='#002525', width=2),
-                                                   autoDownsample = False)
+                                              name = 'Ch1')                
+        self.curvePS = self.plotitemPS.plot(pen=pg.mkPen(color='#000099', width=2))
+        self.curve5v = self.plotitem5v.plot(pen=pg.mkPen(color='#009999',width=2))
+        self.curveminus12v = self.plotitemminus12v.plot(pen=pg.mkPen(color='#990099',width=2))
+        self.curvevref = self.plotitemvref.plot(pen=pg.mkPen(color='#990000',width=2))
+        self.curvetemp = self.plotitemtemp.plot(pen=pg.mkPen(color='#002525', width=2))
         
         self.signals()
         
@@ -824,7 +777,21 @@ class Measure(QMainWindow):
         self.tbviewch1.clicked.connect(self.viewplots)
         self.cbsecondplot.currentIndexChanged.connect(self.secondplot)
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
-        self.tbtempcorrec.clicked.connect(self.afterstopping)
+        self.tbsdc.clicked.connect(self.sdc)
+        
+    def sdc(self):
+        self.tbstartmeasure.setEnabled(False)
+        device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
+        self.ser = serial.Serial(device, 115200, timeout = 1)
+        self.ser.write('s'.encode())
+        for i in range (20):
+            line = self.ser.readline().decode().strip().split(',')
+            print(line)
+        while len(line) == 9:
+            print(line)
+            line = self.ser.readline().decode().strip().split(',')
+        self.ser.close()
+        self.tbstartmeasure.setEnabled(True)
 
         
     def secondplot(self, index):
@@ -838,7 +805,11 @@ class Measure(QMainWindow):
         elif index == 2:
             self.graphicsView.addItem(self.plotitemPS, row=1, col=0)
         elif index == 3:
-            self.graphicsView.addItem(self.plotitemvoltages, row=1, col=0)
+            self.graphicsView.addItem(self.plotitem5V, row=1, col=0)
+        elif index == 4:
+            self.graphicsView.addItem(self.plotitemminus12V, row = 1, col = 0)
+        elif index == 5:
+            self.graphicsView.addItem(self.plotitemvref, row = 1, col = 0)
     
     
     def viewplots(self):
@@ -928,20 +899,20 @@ class Measure(QMainWindow):
     def update(self, measurements):
         self.times.append(measurements[0])
         self.tempmeas.append(measurements[1])
-        self.ch0meas.append(measurements[2])
-        self.ch1meas.append(measurements[3])
-        self.PSmeas.append(measurements[4])
-        self.minus12Vmeas.append(measurements[5])
-        self.v5Vmeas.append(measurements[6])
-        self.v1058Vmeas.append(measurements[7])   
+        self.ch0meas.append(-(measurements[2]) * 0.000375 + 12.288)
+        self.ch1meas.append(-(measurements[3]) * 0.000375 + 12.288)
+        self.PSmeas.append(measurements[4] * 0.1875 / 1000 * 12.914)
+        self.minus12Vmeas.append(measurements[5] * 0.1875 / 1000 * 2.2)
+        self.v5Vmeas.append(measurements[6] * 0.1875 / 1000)
+        self.v1058Vmeas.append(measurements[7] * 0.1875 / 1000 * 2)   
         
         DS = 1 #Downsampling
         self.curvetemp.setData(self.times[::DS], self.tempmeas[::DS])
         self.curvech0.setData(self.times[::DS], self.ch0meas[::DS])
         self.curvech1.setData(self.times[::DS], self.ch1meas[::DS])
         self.curve5V.setData(self.times[::DS], self.v5Vmeas[::DS])
-        self.curve1058V.setData(self.times[::DS], self.v1058Vmeas[::DS])
-        self.curveminus12V.setData(self.times[::DS], self.minus12Vmeas[::DS])
+        self.curvevref.setData(self.times[::DS], self.v1058Vmeas[::DS])
+        self.curveminus12v.setData(self.times[::DS], self.minus12Vmeas[::DS])
         self.curvePS.setData(self.times[::DS], self.PSmeas[::DS])
 
         
@@ -1049,7 +1020,7 @@ class Measure(QMainWindow):
         
         #If batch file is selected, load the next line in the file in the dmetadata
         #and in metadata gui
-        if mymainmenu.mymetadata.cbbatchfile.isChecked():
+        """if mymainmenu.mymetadata.cbbatchfile.isChecked():
             self.batchlinenumbnow = mymainmenu.mymetadata.batchfilelinenumb.value()
             dfbatch = pd.read_csv('batchfile.csv').astype(str)
             self.batchlinenumbnext = self.batchlinenumbnow + 1
@@ -1057,7 +1028,7 @@ class Measure(QMainWindow):
                 mymainmenu.mymetadata.batchfilelinenumb.setValue(self.batchlinenumbnext)
                 global dmetadata
                 dmetadata = dfbatch.iloc[self.batchlinenumbnext,:].to_dict()
-                mymainmenu.mymetadata.metadatadictogui()
+                mymainmenu.mymetadata.metadatadictogui()"""
                 
         #Now ready for the next measurement
 

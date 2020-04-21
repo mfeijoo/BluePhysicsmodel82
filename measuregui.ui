@@ -134,6 +134,50 @@ background-color:rgb(193,210,238);
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="tbsdc">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>36</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Subtract Dark Current</string>
+         </property>
+         <property name="text">
+          <string>SDC</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>iconspd/Play-100.png</normaloff>iconspd/Play-100.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>75</width>
+           <height>75</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextOnly</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="tbstartmeasure">
          <property name="enabled">
           <bool>true</bool>
@@ -191,6 +235,9 @@ background-color:rgb(193,210,238);
          <property name="toolTip">
           <string>Stop measuring</string>
          </property>
+         <property name="toolTipDuration">
+          <number>-1</number>
+         </property>
          <property name="text">
           <string>Stop</string>
          </property>
@@ -206,9 +253,6 @@ background-color:rgb(193,210,238);
          </property>
          <property name="toolButtonStyle">
           <enum>Qt::ToolButtonIconOnly</enum>
-         </property>
-         <property name="toolTipDuration" stdset="0">
-          <number>-1</number>
          </property>
         </widget>
        </item>
@@ -312,50 +356,6 @@ background-color:rgb(193,210,238);
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QToolButton" name="tbtempcorrec">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>View Ch0</string>
-            </property>
-            <property name="text">
-             <string>Temp. C.</string>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>iconspd/measure.png</normaloff>iconspd/measure.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>75</width>
-              <height>75</height>
-             </size>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <property name="toolButtonStyle">
-             <enum>Qt::ToolButtonTextOnly</enum>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -407,7 +407,17 @@ background-color:rgb(193,210,238);
             </item>
             <item>
              <property name="text">
-              <string>voltages</string>
+              <string>5V</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>-12V</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Vref</string>
              </property>
             </item>
            </widget>

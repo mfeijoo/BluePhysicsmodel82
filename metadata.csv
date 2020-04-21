@@ -1,8 +1,8 @@
 Date Time,19 Nov 2019 20:55:43
-Save File As,Default
-File Name,default
-Adjacent Channels Ratio,1.0
-Reference Charge,100.0
+Save File As,Custom
+File Name,hola
+Neighbour Channel Ratio,1
+Reference Charge,100
 Calibration Factor,1.0
 Facility,Blue Physics
 Investigator,hola3
@@ -20,20 +20,15 @@ Field Size X1,1.0
 Field Size X2,1.0
 Field Size Y1,1.0
 Field Size Y2,1.0
-IC Measure,0.009
-IC Temperature,0.0
-IC Pressure,0.0
 Setup,SSD
 Distance,100
 MU,200
 Transducer Type,MPPC S13360-1325CS
 Sensor Type,Fiber
 Sensor Size,2
-Fiber Diameter,0.25
 Fiber Length,2000
 Sensor Position X,0.0
 Sensor Position Y,0.0
 Sensor Position Z,20.0
-Reference Fiber Diameter,0.25
 Reference Fiber Length,2000
 Comments,Test
