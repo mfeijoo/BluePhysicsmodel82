@@ -83,8 +83,8 @@ class MeasureThread(QThread):
         QThread.__init__(self)
         self.stop = False
         #emulator
-        self.ser = serial.Serial ('/dev/pts/6', 115200, timeout=1)
-        #self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
+        #self.ser = serial.Serial ('/dev/pts/6', 115200, timeout=1)
+        self.ser = serial.Serial ('/dev/ttyS0', 115200, timeout=1)
 
     def __del__(self):
         self.wait()
@@ -92,12 +92,12 @@ class MeasureThread(QThread):
     def run(self):
         #One reading to discard garbge
         #comment if emulator
-        #reading0 = self.ser.readline().decode().strip().split(',')
+        reading0 = self.ser.readline().decode().strip().split(',')
 
         #second reading to check starting time
         #comment if emulator
-        #reading1 = self.ser.readline().decode().strip().split(',')
-        #tstart = int(reading1[0])
+        reading1 = self.ser.readline().decode().strip().split(',')
+        tstart = int(reading1[0])
         
         while True:
             
@@ -108,8 +108,8 @@ class MeasureThread(QThread):
                 reading = self.ser.readline().decode().strip().split(',')
                 #print (reading)
                 #only if emulator
-                listatosend = [float(i) for i in reading]
-                #listatosend = [(int(reading[0])-tstart)/1000] + [float(reading[1])] + [int(i) for i  in reading[2:]]
+                #listatosend = [float(i) for i in reading]
+                listatosend = [(int(reading[0])-tstart)/1000] + [float(reading[1])] + [int(i) for i  in reading[2:]]
                 #print (listatosend)
                 self.info.emit(listatosend)
             except:
@@ -903,8 +903,8 @@ class Measure(QMainWindow):
         dmetadata['Date Time'] = time.strftime('%d %b %Y %H:%M:%S')
 
         #only if emulator
-        self.emulator = EmulatorThread()
-        self.emulator.start()
+        #self.emulator = EmulatorThread()
+        #self.emulator.start()
         
         self.measurethread = MeasureThread()
         self.measurethread.start()
@@ -936,7 +936,7 @@ class Measure(QMainWindow):
         
     def stopmeasurement(self):
         #emulator
-        self.emulator.stopping()
+        #self.emulator.stopping()
         self.measurethread.stopping()
         self.tbstopmeasure.setEnabled(False)
         self.tbstartmeasure.setEnabled(True)
