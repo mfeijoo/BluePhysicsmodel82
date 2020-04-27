@@ -136,11 +136,11 @@ class MainMenu (QMainWindow):
         self.setwindowstitle()
         
     def setwindowstitle(self):
-        windowstitle = 'Blue Physics Model 8.2 File: %s' %(dmetadata['File Name'])
+        windowstitle = 'Blue Physics Model 8.2.1 File: %s' %(dmetadata['File Name'])
         self.setWindowTitle(windowstitle)
         self.mymeasure.setWindowTitle(windowstitle)
         self.mymetadata.setWindowTitle(windowstitle)
-        self.myanalyze.setWindowTitle('Blue Physics Model 8.2 Analyze File:')
+        self.myanalyze.setWindowTitle('Blue Physics Model 8.2.1 Analyze File:')
        
     def signals(self):
         self.tbmeasure.clicked.connect(self.showmeasure)
@@ -782,8 +782,8 @@ class Measure(QMainWindow):
         
     def regulate(self):
         self.tbstartmeasure.setEnabled(False)
-        device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
-        self.serreg = serial.Serial(device, 115200, timeout=1)
+        //device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
+        self.serreg = serial.Serial('/dev/ttyS0', 115200, timeout=1)
         self.serreg.write('r'.encode())
         print ('r'.encode())
         for i in range(10):
@@ -797,8 +797,8 @@ class Measure(QMainWindow):
         
     def sdc(self):
         self.tbstartmeasure.setEnabled(False)
-        device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
-        self.ser = serial.Serial(device, 115200, timeout = 1)
+        //device = list(serial.tools.list_ports.grep('Adafruit ItsyBitsy M4'))[0].device
+        self.ser = serial.Serial('/dev/ttyS0', 115200, timeout = 1)
         self.ser.write('s'.encode())
         for i in range (10):
             line = self.ser.readline().decode().strip().split(',')
