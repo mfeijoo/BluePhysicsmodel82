@@ -128,8 +128,8 @@ void setup() {
   SPI.endTransaction();
 
   //Remove dark current
-  analogWrite (DAC0, dcvch1); //darkcurrent ch1
-  analogWrite (DAC1, dcvch0); //darkcurrent ch0
+  //analogWrite (DAC0, dcvch1); //darkcurrent ch1
+  //analogWrite (DAC1, dcvch0); //darkcurrent ch0
 
 }
 
@@ -137,8 +137,8 @@ void loop() {
 
 
   //Remove dark current
-  //analogWrite (DAC0, 2300); //darkcurrent ch1
-  //analogWrite (DAC1, 1800); //darkcurrent ch0
+  analogWrite (DAC0, dcvch1); //darkcurrent ch1
+  analogWrite (DAC1, dcvch0); //darkcurrent ch0
   
 
   unsigned long currentMillis = millis();
@@ -226,8 +226,8 @@ void ReadChannels(){
  
  SPI.endTransaction();
 
- //voltch0 = -resultch0 * 0.000375 + 12.288;
- //voltch1 = -resultch1 * 0.000375 + 12.288;
+ voltch0 = -resultch0 * 0.000375 + 12.288;
+ voltch1 = -resultch1 * 0.000375 + 12.288;
 }
 
 void ReadChannelsOnce(){
@@ -261,82 +261,73 @@ void sdc(){
  while (millis() - previousMillis < integral){
  }
  ReadChannelsOnce();
- Serial.print("0,");
- Serial.print("dcvch0min,");
- Serial.print(dcvch0min);
- Serial.print(",");
- Serial.print("dcvch0,");
- Serial.print(dcvch0);
- Serial.print(",");
- Serial.print("dcvch0max,");
- Serial.print(dcvch0max);
- Serial.print(",");
- Serial.print("voltch0,");
- Serial.println(voltch0);
- Serial.print("1,");
- Serial.print("dcvch1min,");
- Serial.print(dcvch1min);
- Serial.print(",");
- Serial.print("dcvch1,");
- Serial.print(",");
- Serial.print(dcvch1);
- Serial.print("dcvch1max,");
- Serial.print(",");
- Serial.print(dcvch1max);
- Serial.print("voltch1,");
- Serial.println(voltch1);
+ Serial1.print("0,");
+ Serial1.print("dcvch0min,");
+ Serial1.print(dcvch0min);
+ Serial1.print(",dcvch0,");
+ Serial1.print(dcvch0);
+ Serial1.print(",dcvch0max,");
+ Serial1.print(dcvch0max);
+ Serial1.print(",voltch0,");
+ Serial1.println(voltch0);
+ Serial1.print("1,");
+ Serial1.print("dcvch1min,");
+ Serial1.print(dcvch1min);
+ Serial1.print(",dcvch1,");
+ Serial1.print(dcvch1);
+ Serial1.print(",dcvch1max,");
+ Serial1.print(dcvch1max);
+ Serial1.print(",voltch1,");
+ Serial1.println(voltch1);
  while (millis() - previousMillis < integral){
  }
  ReadChannelsOnce();
- while (resultch0 < 32742 or resultch0 > 32792){
-  if (resultch0 < 32742){
-    dcvch0min = dcvch0;
-  }
-  if (resultch0 > 32792){
+ while (voltch0 < 0 or volltch0 > 0.02){
+  if (voltch0 < 0){
     dcvch0max = dcvch0;
+  }
+  if (voltch0 > 0.02){
+    dcvch0min = dcvch0;
   }
   dcvch0 = int((dcvch0min + dcvch0max)/2);
   analogWrite(DAC1, dcvch0);
   while (millis() - previousMillis < integral){
   }
   ReadChannelsOnce();
-  Serial.print("0,");
-  Serial.print("dcvch0min,");
-  Serial.print(dcvch0min);
-  Serial.print(",");
-  Serial.print("dcvch0,");
-  Serial.print(dcvch0);
-  Serial.print(",");
-  Serial.print("dcvch0max,");
-  Serial.print(dcvch0max);
-  Serial.print(",");
-  Serial.print("voltch0,");
-  Serial.println(resultch0);
+  Serial1.print("0,");
+  Serial1.print("dcvch0min,");
+  Serial1.print(dcvch0min);
+  Serial1.print(",dcvch0,");
+  Serial1.print(dcvch0);
+  Serial1.print(",dcvch0max,");
+  Serial1.print(dcvch0max);
+  Serial1.print(",voltch0,");
+  Serial1.println(voltch0);
  }
- while (resultch1 < 32742 or resultch1 > 32792){
-  if (resultch1 < 32742){
-    dcvch1min = dcvch1;
-  }
-  if (resultch1 > 32792){
+ while (voltch1 < 0 or voltch1 > 0.02){
+  if (voltch1 < 0){
     dcvch1max = dcvch1;
+  }
+  if (voltch1 > 0.02){
+    dcvch1min = dcvch1;
   }
   dcvch1 = int((dcvch1min + dcvch1max)/2);
   analogWrite(DAC0, dcvch1);
   while (millis() - previousMillis < integral){
   }
   ReadChannelsOnce();
-  Serial.print("1");
-  Serial.print("dcvch1min,");
-  Serial.print(dcvch1min);
-  Serial.print(",");
-  Serial.print("dcvch1,");
-  Serial.print(dcvch1);
-  Serial.print(",");
-  Serial.print("dcvch1max,");
-  Serial.print(dcvch1max);
-  Serial.print(",");
-  Serial.print("ch1count,");
-  Serial.println(resultch1);
+  Serial1.print("1");
+  Serial1.print("dcvch1min,");
+  Serial1.print(dcvch1min);
+  Serial1.print(",");
+  Serial1.print("dcvch1,");
+  Serial1.print(dcvch1);
+  Serial1.print(",");
+  Serial1.print("dcvch1max,");
+  Serial1.print(dcvch1max);
+  Serial1.print(",");
+  Serial1.print("ch1count,");
+  Serial1.println(resultch1);
  }
 }
 
@@ -359,14 +350,14 @@ void regulatePS(){
     potcount = int((potlow + pothigh) / 2);
     setpot(potcount);
     readPS();
-    Serial.print("regulate,pothigh,");
-    Serial.print(pothigh);
-    Serial.print(",potnow,");
-    Serial.print(potcount);
-    Serial.print(",PS,");
-    Serial.print(PSV, 4);
-    Serial.print(",potlow,");
-    Serial.println(potlow);
+    Serial1.print("regulate,pothigh,");
+    Serial1.print(pothigh);
+    Serial1.print(",potnow,");
+    Serial1.print(potcount);
+    Serial1.print(",PS,");
+    Serial1.print(PSV, 4);
+    Serial1.print(",potlow,");
+    Serial1.println(potlow);
   }
 }
 

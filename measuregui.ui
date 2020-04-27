@@ -178,6 +178,50 @@ background-color:rgb(193,210,238);
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="tbregulate">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>36</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Subtract Dark Current</string>
+         </property>
+         <property name="text">
+          <string>Regulate</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>iconspd/Play-100.png</normaloff>iconspd/Play-100.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>75</width>
+           <height>75</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextOnly</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="tbstartmeasure">
          <property name="enabled">
           <bool>true</bool>

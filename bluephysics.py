@@ -778,6 +778,7 @@ class Measure(QMainWindow):
         self.cbsecondplot.currentIndexChanged.connect(self.secondplot)
         self.tbstopmeasure.clicked.connect(self.stopmeasurement)
         self.tbsdc.clicked.connect(self.sdc)
+        self.tbregulate.clicked.connect(self.regulate)
         
     def regulate(self):
         self.tbstartmeasure.setEnabled(False)
